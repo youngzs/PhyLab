@@ -1,0 +1,31 @@
+src/
+├── components/
+│   ├── common/            # 通用组件
+│   │   ├── Button.jsx     # 按钮组件
+│   │   ├── Card.jsx       # 卡片组件
+│   │   ├── Icon.jsx       # 图标组件
+│   │   ├── Navbar.jsx     # 导航栏组件
+│   │   └── Tabs.jsx       # 标签页组件
+│   ├── mind-map/          # 思维导图相关组件
+│   │   ├── KnowledgeMap.jsx   # 知识图谱组件
+│   │   └── KnowledgeNode.jsx  # 知识点节点组件
+│   ├── experiments/       # 实验模拟相关组件
+│   │   ├── GravityExperiment.jsx  # 自由落体实验组件
+│   │   └── ExperimentData.jsx     # 实验数据展示组件
+│   ├── quiz/              # 题库和测验相关组件
+│   │   ├── QuizQuestion.jsx       # 题目组件 
+│   │   └── QuizOption.jsx         # 选项组件
+│   └── dashboard/         # 学习仪表盘相关组件
+│       ├── ProgressBar.jsx        # 进度条组件
+│       └── LearningStats.jsx      # 学习统计组件
+├── pages/                 # 页面级别组件
+│   ├── home/              # 首页
+│   └── learn/             # 学习中心
+│       └── mechanics/     # 力学章节
+│           └── NewtonLaws.jsx     # 牛顿定律页面
+├── utils/                 # 工具函数
+├── store/                 # 状态管理
+├── services/              # API服务封装
+├── styles/                # 公共样式
+├── router/                # 路由配置
+└── App.js                 # 应用根组件 

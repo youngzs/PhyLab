@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>力学章节 - 物理思维实验室</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --text-color: #2b2d42;
+            --bg-color: #f8f9fa;
+            --card-color: #ffffff;
+            --border-color: #e9ecef;
+        }
+        
+        .dark {
+            --primary-color: #4cc9f0;
+            --secondary-color: #7209b7;
+            --accent-color: #f72585;
+            --text-color: #e9ecef;
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --border-color: #333333;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .card {
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+        
+        .knowledge-map {
+            width: 100%;
+            height: 250px;
+            position: relative;
+        }
+        
+        .knowledge-node {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: var(--card-color);
+            border: 2px solid var(--primary-color);
+            color: var(--text-color);
+            font-weight: 500;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+        
+        .knowledge-node:hover, .knowledge-node.active {
+            transform: scale(1.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .knowledge-node.completed {
+            border-color: #10b981;
+        }
+        
+        .knowledge-node.in-progress {
+            border-color: #f59e0b;
+        }
+        
+        .knowledge-link {
+            position: absolute;
+            height: 2px;
+            background-color: var(--border-color);
+            transform-origin: 0% 0%;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-size: 0.85rem;
+            z-index: 10;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            width: 180px;
+        }
+        
+        .experiment-area {
+            height: 300px;
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gravity-object {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        
+        .physics-container {
+            position: relative;
+            height: 100%;
+        }
+        
+        .physics-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background-color: var(--border-color);
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+        
+        .physics-scale {
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 20px;
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+        
+        .scale-mark {
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+        
+        .scale-line {
+            width: 10px;
+            height: 1px;
+            background-color: var(--text-color);
+        }
+        
+        .scale-text {
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+        
+        .formula-block {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-left: 3px solid var(--primary-color);
+            padding: 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .formula {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 8px 0;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .btn-action {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-toggle:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+        
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 300px;
+            background-color: var(--card-color);
+            border-left: 1px solid var(--border-color);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 40;
+            overflow-y: auto;
+        }
+        
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 30;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-overlay.open {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .quiz-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .quiz-option.selected {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-color: var(--primary-color);
+        }
+        
+        .quiz-option.correct {
+            background-color: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+        }
+        
+        .quiz-option.incorrect {
+            background-color: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <header class="sticky top-0 z-20 bg-opacity-90 backdrop-filter backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <a href="index.html" class="flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <i class="fas fa-atom text-3xl text-blue-600 dark:text-blue-400"></i>
+                    <h1 class="text-xl md:text-2xl font-bold ml-2">物理思维实验室</h1>
+                </a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-1">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">章节进度:</div>
+                    <div class="w-32 h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                        <div class="h-full rounded-full bg-blue-600 dark:bg-blue-400" style="width: 35%"></div>
+                    </div>
+                    <div class="text-sm font-medium">35%</div>
+                </div>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                    <i class="fas fa-moon text-gray-600 dark:text-gray-300 dark:hidden"></i>
+                    <i class="fas fa-sun text-yellow-400 hidden dark:block"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="hidden md:inline text-sm font-medium">学生账号</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="flex items-center mb-6">
+            <div class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium mr-3">
+                力学章节
+            </div>
+            <h1 class="text-2xl font-bold">探索牛顿运动定律与重力</h1>
+        </div>
+
+        <!-- 知识图谱导航 -->
+        <section class="mb-8">
+            <div class="card p-4 rounded-xl">
+                <h2 class="text-lg font-semibold mb-3">力学知识导航</h2>
+                <div class="knowledge-map" id="knowledge-map">
+                    <!-- 节点和连接由JS生成 -->
+                </div>
+                <div class="tooltip" id="knowledge-tooltip"></div>
+            </div>
+        </section>
+
+        <!-- 主要内容区域 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- 左侧内容区域 -->
+            <div class="md:col-span-2">
+                <!-- 内容标签页 -->
+                <div class="mb-6">
+                    <div class="flex border-b border-gray-200 dark:border-gray-700">
+                        <button class="tab-btn px-4 py-2 font-medium border-b-2 border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400" data-tab="theory">理论学习</button>
+                        <button class="tab-btn px-4 py-2 font-medium border-b-2 border-transparent hover:text-blue-600 dark:hover:text-blue-400" data-tab="experiment">实验探究</button>
+                        <button class="tab-btn px-4 py-2 font-medium border-b-2 border-transparent hover:text-blue-600 dark:hover:text-blue-400" data-tab="examples">例题解析</button>
+                        <button class="tab-btn px-4 py-2 font-medium border-b-2 border-transparent hover:text-blue-600 dark:hover:text-blue-400" data-tab="quiz">知识检测</button>
+                    </div>
+                </div>
+
+                <!-- 理论学习 -->
+                <div class="tab-content active" id="theory-content">
+                    <div class="card p-6 rounded-xl mb-6">
+                        <h2 class="text-xl font-bold mb-4">牛顿第一定律（惯性定律）</h2>
+                        <p class="mb-4">一切物体在没有受到外力作用时，总保持匀速直线运动状态或静止状态。</p>
+                        
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
+                            <div class="flex items-start">
+                                <div class="mr-3 mt-1 text-yellow-600 dark:text-yellow-400">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-1">关键概念：惯性</h4>
+                                    <p class="text-sm">惯性是物体保持原来运动状态不变的性质。质量越大，惯性越大。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mb-3">生活中的惯性现象</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-2">
+                                        <i class="fas fa-car-crash text-sm"></i>
+                                    </div>
+                                    <h4 class="font-medium">急刹车时身体前倾</h4>
+                                </div>
+                                <p class="text-sm">汽车急刹车时，乘客身体会向前倾，这是因为身体想要保持原来的运动状态。</p>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-2">
+                                        <i class="fas fa-broom text-sm"></i>
+                                    </div>
+                                    <h4 class="font-medium">抖动地毯除尘</h4>
+                                </div>
+                                <p class="text-sm">快速抖动地毯后突然停下，灰尘会脱离地毯继续运动，这是灰尘的惯性导致的。</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6 rounded-xl mb-6">
+                        <h2 class="text-xl font-bold mb-4">牛顿第二定律（动量定律）</h2>
+                        <p class="mb-4">物体加速度的大小与作用力成正比，与物体质量成反比，方向与作用力方向相同。</p>
+                        
+                        <div class="formula-block">
+                            <div class="formula">F = ma</div>
+                            <div class="text-sm">
+                                <p>式中：F - 作用力（牛顿，N）</p>
+                                <p>m - 物体质量（千克，kg）</p>
+                                <p>a - 物体加速度（米/秒²，m/s²）</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">理解要点</h3>
+                                <ul class="space-y-2 pl-5 list-disc text-sm">
+                                    <li>力是物体加速度的原因</li>
+                                    <li>同一物体：力越大，加速度越大</li>
+                                    <li>同一力作用：质量越大，加速度越小</li>
+                                    <li>加速度方向与合外力方向一致</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">应用举例</h3>
+                                <ul class="space-y-2 pl-5 list-disc text-sm">
+                                    <li>火箭发射：喷气产生的推力使火箭加速上升</li>
+                                    <li>弹簧秤测量：利用弹簧形变产生的弹力与物体重力平衡</li>
+                                    <li>赛车启动：引擎提供的力使汽车获得加速度</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6 rounded-xl">
+                        <h2 class="text-xl font-bold mb-4">重力与自由落体</h2>
+                        <p class="mb-4">地球对物体有吸引力，这种力就是重力。在地球表面附近，重力可表示为：</p>
+                        
+                        <div class="formula-block">
+                            <div class="formula">G = mg</div>
+                            <div class="text-sm">
+                                <p>式中：G - 重力（牛顿，N）</p>
+                                <p>m - 物体质量（千克，kg）</p>
+                                <p>g - 重力加速度，约9.8 m/s²</p>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mt-4 mb-3">自由落体运动</h3>
+                        <p class="mb-4">只受重力作用的物体做自由落体运动，其加速度等于重力加速度。</p>
+                        
+                        <div class="formula-block">
+                            <div class="formula">h = ½gt²</div>
+                            <div class="text-sm">
+                                <p>式中：h - 下落高度（米，m）</p>
+                                <p>g - 重力加速度，约9.8 m/s²</p>
+                                <p>t - 下落时间（秒，s）</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4">
+                            <div class="flex items-start">
+                                <div class="mr-3 mt-1 text-blue-600 dark:text-blue-400">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-1">趣味知识</h4>
+                                    <p class="text-sm">伽利略在比萨斜塔上进行的实验证明，在忽略空气阻力的情况下，所有物体无论质量大小，都以相同的加速度下落。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 实验探究 -->
+                <div class="tab-content" id="experiment-content">
+                    <div class="card p-6 rounded-xl mb-6">
+                        <h2 class="text-xl font-bold mb-4">自由落体运动模拟实验</h2>
+                        <p class="mb-4">通过改变物体的质量和释放高度，观察自由落体运动的规律。</p>
+                        
+                        <div class="experiment-area" id="gravity-experiment">
+                            <div class="physics-container">
+                                <div class="physics-scale">
+                                    <div class="scale-mark">
+                                        <div class="scale-line"></div>
+                                        <div class="scale-text">0m</div>
+                                    </div>
+                                    <div class="scale-mark">
+                                        <div class="scale-line"></div>
+                                        <div class="scale-text">5m</div>
+                                    </div>
+                                    <div class="scale-mark">
+                                        <div class="scale-line"></div>
+                                        <div class="scale-text">10m</div>
+                                    </div>
+                                    <div class="scale-mark">
+                                        <div class="scale-line"></div>
+                                        <div class="scale-text">15m</div>
+                                    </div>
+                                </div>
+                                <div class="gravity-object" style="top: 10px;"></div>
+                                <div class="physics-ground"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">物体质量 (kg)</label>
+                                <div class="flex items-center">
+                                    <input type="range" min="1" max="10" value="1" class="w-full" id="mass-slider">
+                                    <span class="ml-2 text-sm font-medium" id="mass-value">1 kg</span>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">注：在忽略空气阻力的情况下，质量不影响下落时间</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">释放高度 (m)</label>
+                                <div class="flex items-center">
+                                    <input type="range" min="1" max="15" value="15" class="w-full" id="height-slider">
+                                    <span class="ml-2 text-sm font-medium" id="height-value">15 m</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mt-6">
+                            <div>
+                                <div class="text-sm font-medium">下落时间: <span id="fall-time">0.00</span> 秒</div>
+                                <div class="text-sm font-medium">下落速度: <span id="fall-velocity">0.00</span> m/s</div>
+                            </div>
+                            <div>
+                                <button class="btn-primary px-4 py-2 rounded-lg" id="start-experiment">
+                                    开始实验
+                                </button>
+                                <button class="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg ml-2" id="reset-experiment">
+                                    重置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6 rounded-xl">
+                        <h2 class="text-xl font-bold mb-4">实验数据分析</h2>
+                        
+                        <div class="overflow-x-auto mb-4">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="bg-gray-100 dark:bg-gray-800">
+                                        <th class="px-4 py-2 text-left text-sm">实验序号</th>
+                                        <th class="px-4 py-2 text-left text-sm">质量 (kg)</th>
+                                        <th class="px-4 py-2 text-left text-sm">高度 (m)</th>
+                                        <th class="px-4 py-2 text-left text-sm">理论时间 (s)</th>
+                                        <th class="px-4 py-2 text-left text-sm">实际时间 (s)</th>
+                                        <th class="px-4 py-2 text-left text-sm">落地速度 (m/s)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="experiment-data">
+                                    <tr>
+                                        <td class="border px-4 py-2 text-sm">-</td>
+                                        <td class="border px-4 py-2 text-sm">-</td>
+                                        <td class="border px-4 py-2 text-sm">-</td>
+                                        <td class="border px-4 py-2 text-sm">-</td>
+                                        <td class="border px-4 py-2 text-sm">-</td>
+                                        <td class="border px-4 py-2 text-sm">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mb-3">实验结论</h3>
+                        <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                            <ul class="space-y-2 pl-5 list-disc">
+                                <li>自由落体运动的下落时间只与初始高度有关，与物体质量无关</li>
+                                <li>下落高度h与时间t的平方成正比：h = ½gt²</li>
+                                <li>下落速度v与时间t成正比：v = gt</li>
+                                <li>实验数据与理论计算的细微差异可能是由于测量误差或空气阻力的影响</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 例题解析 -->
+                <div class="tab-content" id="examples-content">
+                    <div class="card p-6 rounded-xl mb-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h2 class="text-xl font-bold">例题1：自由落体运动</h2>
+                            <div class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
+                                中等难度
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p>一个物体从20米高的地方自由落下，求：</p>
+                            <p>(1) 物体下落多少时间后到达地面？</p>
+                            <p>(2) 物体落地瞬间的速度是多少？</p>
+                            <p>（取重力加速度g=10m/s²）</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <button class="text-blue-600 dark:text-blue-400 flex items-center" id="show-solution-1">
+                                <i class="fas fa-chevron-right mr-2"></i>
+                                显示解析
+                            </button>
+                            
+                            <div class="solution mt-4 hidden" id="solution-1">
+                                <h3 class="text-lg font-semibold mb-2">解析</h3>
+                                <div class="formula-block">
+                                    <p>(1) 根据自由落体公式：h = ½gt²</p>
+                                    <p>代入数据：20 = ½×10×t²</p>
+                                    <p>解得：t² = 4，t = 2s</p>
+                                    <p>所以，物体下落2秒后到达地面。</p>
+                                </div>
+                                
+                                <div class="formula-block mt-4">
+                                    <p>(2) 根据速度公式：v = gt</p>
+                                    <p>代入数据：v = 10×2 = 20m/s</p>
+                                    <p>所以，物体落地瞬间的速度是20m/s。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6 rounded-xl">
+                        <div class="flex justify-between items-start mb-4">
+                            <h2 class="text-xl font-bold">例题2：牛顿第二定律应用</h2>
+                            <div class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-xs font-medium">
+                                较难
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p>一个质量为2kg的物体受到5N的水平拉力，物体与水平面之间的动摩擦系数为0.2，求：</p>
+                            <p>(1) 物体受到的摩擦力大小</p>
+                            <p>(2) 物体的加速度</p>
+                            <p>（取重力加速度g=10m/s²）</p>
+                        </div>
+                        
+                        <div>
+                            <button class="text-blue-600 dark:text-blue-400 flex items-center" id="show-solution-2">
+                                <i class="fas fa-chevron-right mr-2"></i>
+                                显示解析
+                            </button>
+                            
+                            <div class="solution mt-4 hidden" id="solution-2">
+                                <h3 class="text-lg font-semibold mb-2">解析</h3>
+                                <div class="formula-block">
+                                    <p>(1) 物体受重力G = mg = 2×10 = 20N</p>
+                                    <p>物体受到的摩擦力f = μN = μmg</p>
+                                    <p>代入数据：f = 0.2×20 = 4N</p>
+                                </div>
+                                
+                                <div class="formula-block mt-4">
+                                    <p>(2) 根据牛顿第二定律，物体所受合力</p>
+                                    <p>F = 拉力 - 摩擦力 = 5 - 4 = 1N</p>
+                                    <p>物体的加速度a = F/m = 1/2 = 0.5m/s²</p>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg mt-4">
+                                    <h4 class="font-medium mb-1">解题思路</h4>
+                                    <ol class="list-decimal pl-5 text-sm space-y-1">
+                                        <li>分析物体受力情况：重力、支持力、拉力、摩擦力</li>
+                                        <li>在竖直方向，重力与支持力平衡，得出支持力等于重力</li>
+                                        <li>计算摩擦力：摩擦力=摩擦系数×支持力</li>
+                                        <li>在水平方向计算合力：拉力-摩擦力</li>
+                                        <li>利用F=ma计算加速度</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 知识检测 -->
+                <div class="tab-content" id="quiz-content">
+                    <div class="card p-6 rounded-xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold">牛顿定律与重力知识检测</h2>
+                            <div class="text-sm text-gray-500">共5题</div>
+                        </div>
+                        
+                        <div class="quiz-container">
+                            <!-- 题目1 -->
+                            <div class="quiz-question mb-8" id="question-1">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                                        <span class="font-medium">1</span>
+                                    </div>
+                                    <h3 class="font-semibold">牛顿第一定律又称为什么？</h3>
+                                </div>
+                                
+                                <div class="space-y-3 pl-11">
+                                    <div class="quiz-option border rounded-lg p-3" data-index="A">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>动量定律</div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-option border rounded-lg p-3" data-index="B">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>惯性定律</div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-option border rounded-lg p-3" data-index="C">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>作用力与反作用力定律</div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-option border rounded-lg p-3" data-index="D">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>加速度定律</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="quiz-feedback mt-4 hidden">
+                                    <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg quiz-correct hidden">
+                                        <div class="flex items-start">
+                                            <div class="text-green-600 dark:text-green-400 mr-3">
+                                                <i class="fas fa-check-circle"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium">正确！</div>
+                                                <p class="text-sm mt-1">牛顿第一定律又称为惯性定律，它描述了物体在没有外力作用时保持运动状态不变的性质。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg quiz-incorrect hidden">
+                                        <div class="flex items-start">
+                                            <div class="text-red-600 dark:text-red-400 mr-3">
+                                                <i class="fas fa-times-circle"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium">错误！</div>
+                                                <p class="text-sm mt-1">正确答案是：惯性定律。牛顿第一定律描述了物体的惯性特性。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 题目2 -->
+                            <div class="quiz-question mb-8" id="question-2">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                                        <span class="font-medium">2</span>
+                                    </div>
+                                    <h3 class="font-semibold">在自由落体运动中，物体的加速度是多少？</h3>
+                                </div>
+                                
+                                <div class="space-y-3 pl-11">
+                                    <div class="quiz-option border rounded-lg p-3" data-index="A">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>0 m/s²</div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-option border rounded-lg p-3" data-index="B">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>5 m/s²</div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-option border rounded-lg p-3" data-index="C">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>9.8 m/s²</div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-option border rounded-lg p-3" data-index="D">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>与物体质量有关</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="quiz-feedback mt-4 hidden">
+                                    <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg quiz-correct hidden">
+                                        <div class="flex items-start">
+                                            <div class="text-green-600 dark:text-green-400 mr-3">
+                                                <i class="fas fa-check-circle"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium">正确！</div>
+                                                <p class="text-sm mt-1">自由落体运动中，物体的加速度等于重力加速度，在地球表面约为9.8 m/s²。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg quiz-incorrect hidden">
+                                        <div class="flex items-start">
+                                            <div class="text-red-600 dark:text-red-400 mr-3">
+                                                <i class="fas fa-times-circle"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium">错误！</div>
+                                                <p class="text-sm mt-1">正确答案是：9.8 m/s²。自由落体运动的加速度等于重力加速度。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 其他题目 (简化显示) -->
+                            <div class="quiz-question" id="question-3">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                                        <span class="font-medium">3</span>
+                                    </div>
+                                    <h3 class="font-semibold">物体的质量越大，惯性越（ ）。</h3>
+                                </div>
+                                
+                                <div class="space-y-3 pl-11">
+                                    <div class="quiz-option border rounded-lg p-3" data-index="A">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>小</div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-option border rounded-lg p-3" data-index="B">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>大</div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-option border rounded-lg p-3" data-index="C">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>不变</div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-option border rounded-lg p-3" data-index="D">
+                                        <div class="flex items-center">
+                                            <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3 option-marker">
+                                                <div class="hidden w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 option-dot"></div>
+                                            </div>
+                                            <div>无法确定</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between mt-8">
+                            <button class="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg" id="prev-question">
+                                上一题
+                            </button>
+                            <div class="text-center">
+                                <div class="text-sm font-medium mb-2">第 <span id="current-question">1</span> / 5 题</div>
+                                <div class="w-32 h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full rounded-full bg-blue-600 dark:bg-blue-400" id="quiz-progress" style="width: 20%"></div>
+                                </div>
+                            </div>
+                            <button class="btn-primary px-4 py-2 rounded-lg" id="next-question">
+                                下一题
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧边栏 -->
+            <div class="md:col-span-1">
+                <!-- 学习进度 -->
+                <div class="card p-4 rounded-xl mb-6">
+                    <h3 class="text-lg font-semibold mb-3">学习进度</h3>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>力学章节</span>
+                            <span>35%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                            <div class="h-full rounded-full bg-blue-600 dark:bg-blue-400" style="width: 35%"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs mr-2">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="text-sm">牛顿第一定律</div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs mr-2">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <div class="text-sm">牛顿第二定律与重力</div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-white text-xs mr-2">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="text-sm text-gray-500">牛顿第三定律</div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-white text-xs mr-2">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="text-sm text-gray-500">动量与冲量</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 学习数据 -->
+                <div class="card p-4 rounded-xl mb-6">
+                    <h3 class="text-lg font-semibold mb-3">学习数据</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">学习时长</div>
+                            <div class="font-semibold">45分钟</div>
+                        </div>
+                        <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg text-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">测验正确率</div>
+                            <div class="font-semibold">80%</div>
+                        </div>
+                    </div>
+                    <div class="text-sm">
+                        <div class="flex justify-between mb-1">
+                            <span>理论学习</span>
+                            <span>90%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700 mb-3">
+                            <div class="h-full rounded-full bg-green-500" style="width: 90%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between mb-1">
+                            <span>实验探究</span>
+                            <span>60%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700 mb-3">
+                            <div class="h-full rounded-full bg-amber-500" style="width: 60%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between mb-1">
+                            <span>例题练习</span>
+                            <span>40%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                            <div class="h-full rounded-full bg-red-500" style="width: 40%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 笔记与摘要 -->
+                <div class="card p-4 rounded-xl mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-lg font-semibold">笔记与摘要</h3>
+                        <button class="text-blue-600 dark:text-blue-400 text-sm">
+                            <i class="fas fa-plus mr-1"></i>新建
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                            <div class="text-sm font-medium mb-1">牛顿第一定律要点</div>
+                            <p class="text-xs text-gray-600 dark:text-gray-300">惯性是物体固有的属性，与物体的质量成正比，是物体抵抗运动状态改变的性质...</p>
+                            <div class="text-xs text-gray-500 mt-2">2023/10/25 · 已编辑</div>
+                        </div>
+                        
+                        <div class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                            <div class="text-sm font-medium mb-1">自由落体实验数据</div>
+                            <p class="text-xs text-gray-600 dark:text-gray-300">1. 不同重量的物体同时落地 2. 时间与高度平方根成正比 3. h=1/2gt²公式验证...</p>
+                            <div class="text-xs text-gray-500 mt-2">2023/10/24 · 已编辑</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 相关资源 -->
+                <div class="card p-4 rounded-xl">
+                    <h3 class="text-lg font-semibold mb-3">相关资源</h3>
+                    
+                    <div class="space-y-3">
+                        <a href="#" class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                            <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium">牛顿运动定律视频讲解</div>
+                                <div class="text-xs text-gray-500">10分钟 · 视频</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                            <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium">重力与自由落体习题</div>
+                                <div class="text-xs text-gray-500">5页 · PDF文档</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium">伽利略与比萨斜塔实验</div>
+                                <div class="text-xs text-gray-500">3分钟 · 历史小故事</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 侧边栏切换按钮 -->
+    <div class="sidebar-toggle" id="sidebar-toggle">
+        <i class="fas fa-book"></i>
+    </div>
+
+    <!-- 学习助手侧边栏 -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">学习助手</h2>
+                <button id="close-sidebar" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <div class="text-sm font-medium mb-2">学习提示</div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                    <p class="text-sm">学习牛顿定律时，请特别关注"力是物体运动状态改变的原因"这一核心概念。理解力、质量、加速度三者之间的关系。</p>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <div class="text-sm font-medium mb-2">常见问题</div>
+                
+                <div class="space-y-3">
+                    <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                        <div class="font-medium text-sm mb-1">为什么不同质量的物体自由落体时间相同？</div>
+                        <p class="text-xs text-gray-600 dark:text-gray-300">因为物体受到的重力与质量成正比，而加速度与质量成反比，与力成正比，二者效果正好抵消。</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                        <div class="font-medium text-sm mb-1">惯性与质量有什么关系？</div>
+                        <p class="text-xs text-gray-600 dark:text-gray-300">质量是惯性的量度，质量越大，物体的惯性越大，改变其运动状态需要的力也越大。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <div class="text-sm font-medium mb-2">本节要点</div>
+                
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-2">
+                            <i class="fas fa-check text-xs"></i>
+                        </div>
+                        <div class="text-sm">牛顿三大定律的基本内容</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-2">
+                            <i class="fas fa-check text-xs"></i>
+                        </div>
+                        <div class="text-sm">重力与自由落体运动规律</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mr-2">
+                            <i class="fas fa-minus text-xs"></i>
+                        </div>
+                        <div class="text-sm">F=ma公式的应用与计算</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mr-2">
+                            <i class="fas fa-times text-xs"></i>
+                        </div>
+                        <div class="text-sm">复杂物理情境下的力分析</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="text-sm font-medium mb-2">需要帮助？</div>
+                <button class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center">
+                    <i class="fas fa-comment-dots mr-2"></i>
+                    咨询老师
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 侧边栏遮罩 -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <footer class="bg-gray-100 dark:bg-gray-800 py-6 border-t border-gray-200 dark:border-gray-700 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        作者姓名: 物理学习助手团队
+                    </p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <a href="https://twitter.com/PhysicsLearning" class="hover:underline">Twitter/X: @PhysicsLearning</a>
+                    </p>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    © 2023 物理思维实验室. 保留所有权利.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 主题切换功能
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        // 检查系统主题偏好
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // 知识图谱导航
+        function initKnowledgeMap() {
+            const knowledgeMap = document.getElementById('knowledge-map');
+            const tooltip = document.getElementById('knowledge-tooltip');
+            
+            // 知识点节点数据
+            const nodes = [
+                { id: 'newton1', name: '牛顿第一定律', x: 70, y: 70, size: 50, status: 'completed', detail: '物体保持静止或匀速直线运动的趋势，又称惯性定律。' },
+                { id: 'newton2', name: '牛顿第二定律', x: 180, y: 120, size: 60, status: 'in-progress', detail: 'F=ma 描述力、质量与加速度的关系。' },
+                { id: 'newton3', name: '牛顿第三定律', x: 300, y: 70, size: 50, status: 'locked', detail: '作用力与反作用力，大小相等，方向相反，作用在不同物体上。' },
+                { id: 'gravity', name: '重力', x: 180, y: 200, size: 55, status: 'in-progress', detail: '地球对物体的吸引力，G=mg。' },
+                { id: 'freeFall', name: '自由落体', x: 280, y: 180, size: 50, status: 'locked', detail: '只受重力作用的物体运动，加速度为g。' },
+                { id: 'friction', name: '摩擦力', x: 100, y: 180, size: 45, status: 'locked', detail: '接触面间阻碍相对运动的力，f=μN。' }
+            ];
+            
+            // 知识点连接关系
+            const links = [
+                { source: 'newton1', target: 'newton2' },
+                { source: 'newton2', target: 'newton3' },
+                { source: 'newton2', target: 'gravity' },
+                { source: 'gravity', target: 'freeFall' },
+                { source: 'newton1', target: 'friction' },
+                { source: 'friction', target: 'gravity' }
+            ];
+            
+            // 创建节点
+            nodes.forEach(node => {
+                // 创建节点
+                const nodeElement = document.createElement('div');
+                nodeElement.className = `knowledge-node ${node.status}`;
+                nodeElement.style.width = `${node.size}px`;
+                nodeElement.style.height = `${node.size}px`;
+                nodeElement.style.left = `${node.x - node.size/2}px`;
+                nodeElement.style.top = `${node.y - node.size/2}px`;
+                nodeElement.textContent = node.name;
+                nodeElement.dataset.id = node.id;
+                
+                // 添加事件处理
+                nodeElement.addEventListener('mouseover', () => {
+                    tooltip.innerHTML = node.detail;
+                    tooltip.style.left = `${node.x + node.size/2 + 10}px`;
+                    tooltip.style.top = `${node.y}px`;
+                    tooltip.style.visibility = 'visible';
+                    tooltip.style.opacity = '1';
+                });
+                
+                nodeElement.addEventListener('mouseout', () => {
+                    tooltip.style.visibility = 'hidden';
+                    tooltip.style.opacity = '0';
+                });
+                
+                nodeElement.addEventListener('click', () => {
+                    // 这里可以添加点击节点后的跳转或内容切换逻辑
+                    if (node.status !== 'locked') {
+                        document.querySelectorAll('.knowledge-node').forEach(n => {
+                            n.classList.remove('active');
+                        });
+                        nodeElement.classList.add('active');
+                    }
+                });
+                
+                knowledgeMap.appendChild(nodeElement);
+            });
+            
+            // 创建连接线
+            links.forEach(link => {
+                const source = nodes.find(n => n.id === link.source);
+                const target = nodes.find(n => n.id === link.target);
+                
+                // 计算连接线的位置和角度
+                const dx = target.x - source.x;
+                const dy = target.y - source.y;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                
+                // 创建连接线
+                const linkElement = document.createElement('div');
+                linkElement.className = 'knowledge-link';
+                linkElement.style.width = `${length}px`;
+                linkElement.style.left = `${source.x}px`;
+                linkElement.style.top = `${source.y}px`;
+                linkElement.style.transform = `rotate(${angle}deg)`;
+                
+                knowledgeMap.appendChild(linkElement);
+            });
+        }
+        
+        // 标签页切换
+        function initTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // 移除所有标签页的活动状态
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('border-blue-600', 'dark:border-blue-400', 'text-blue-600', 'dark:text-blue-400');
+                        btn.classList.add('border-transparent');
+                    });
+                    
+                    // 激活当前点击的标签页
+                    button.classList.remove('border-transparent');
+                    button.classList.add('border-blue-600', 'dark:border-blue-400', 'text-blue-600', 'dark:text-blue-400');
+                    
+                    // 隐藏所有内容
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // 显示对应内容
+                    const targetTab = button.dataset.tab;
+                    document.getElementById(`${targetTab}-content`).classList.add('active');
+                });
+            });
+        }
+        
+        // 实验模拟功能
+        function initExperiment() {
+            const gravityObject = document.querySelector('.gravity-object');
+            const massSlider = document.getElementById('mass-slider');
+            const massValue = document.getElementById('mass-value');
+            const heightSlider = document.getElementById('height-slider');
+            const heightValue = document.getElementById('height-value');
+            const fallTime = document.getElementById('fall-time');
+            const fallVelocity = document.getElementById('fall-velocity');
+            const startButton = document.getElementById('start-experiment');
+            const resetButton = document.getElementById('reset-experiment');
+            const experimentData = document.getElementById('experiment-data');
+            
+            let experimenting = false;
+            let experimentCount = 0;
+            let initialHeight = 15;
+            let mass = 1;
+            
+            // 更新质量显示
+            massSlider.addEventListener('input', () => {
+                mass = massSlider.value;
+                massValue.textContent = `${mass} kg`;
+                // 更新小球大小（可视化质量）
+                const size = 20 + mass * 2; // 基础大小 + 质量比例
+                gravityObject.style.width = `${size}px`;
+                gravityObject.style.height = `${size}px`;
+                gravityObject.style.left = `50%`;
+                gravityObject.style.transform = `translateX(-50%)`;
+            });
+            
+            // 更新高度显示
+            heightSlider.addEventListener('input', () => {
+                initialHeight = heightSlider.value;
+                heightValue.textContent = `${initialHeight} m`;
+                // 更新小球位置
+                const containerHeight = document.querySelector('.experiment-area').offsetHeight;
+                const groundHeight = 20; // 地面高度
+                const topPosition = containerHeight - groundHeight - (containerHeight - groundHeight) * (initialHeight / 15);
+                gravityObject.style.top = `${topPosition}px`;
+            });
+            
+            // 开始实验
+            startButton.addEventListener('click', () => {
+                if (experimenting) return;
+                
+                experimenting = true;
+                startButton.disabled = true;
+                
+                // 获取初始位置
+                const containerHeight = document.querySelector('.experiment-area').offsetHeight;
+                const groundHeight = 20; // 地面高度
+                const initialTop = parseInt(gravityObject.style.top);
+                const finalTop = containerHeight - groundHeight - gravityObject.offsetHeight / 2;
+                
+                // 计算理论下落时间 (s)
+                const g = 9.8; // 重力加速度 m/s²
+                const theoreticalTime = Math.sqrt(2 * initialHeight / g);
+                
+                // 动画持续时间和开始时间
+                const animationDuration = theoreticalTime * 1000; // 毫秒
+                const startTime = Date.now();
+                
+                // 更新动画函数
+                function updateAnimation() {
+                    const elapsed = (Date.now() - startTime) / 1000; // 秒
+                    
+                    if (elapsed < theoreticalTime) {
+                        // 计算当前下落距离：h = 1/2 * g * t²
+                        const distance = 0.5 * g * elapsed * elapsed;
+                        const progress = distance / initialHeight;
+                        const currentTop = initialTop + progress * (finalTop - initialTop);
+                        
+                        // 更新小球位置
+                        gravityObject.style.top = `${currentTop}px`;
+                        
+                        // 更新信息显示
+                        fallTime.textContent = elapsed.toFixed(2);
+                        fallVelocity.textContent = (g * elapsed).toFixed(2);
+                        
+                        requestAnimationFrame(updateAnimation);
+                    } else {
+                        // 动画结束
+                        gravityObject.style.top = `${finalTop}px`;
+                        fallTime.textContent = theoreticalTime.toFixed(2);
+                        fallVelocity.textContent = (g * theoreticalTime).toFixed(2);
+                        
+                        // 添加实验数据
+                        experimentCount++;
+                        if (experimentCount === 1) {
+                            // 清空示例数据
+                            experimentData.innerHTML = '';
+                        }
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="border px-4 py-2 text-sm">${experimentCount}</td>
+                            <td class="border px-4 py-2 text-sm">${mass}</td>
+                            <td class="border px-4 py-2 text-sm">${initialHeight}</td>
+                            <td class="border px-4 py-2 text-sm">${theoreticalTime.toFixed(2)}</td>
+                            <td class="border px-4 py-2 text-sm">${fallTime.textContent}</td>
+                            <td class="border px-4 py-2 text-sm">${fallVelocity.textContent}</td>
+                        `;
+                        experimentData.appendChild(row);
+                        
+                        experimenting = false;
+                        startButton.disabled = false;
+                    }
+                }
+                
+                updateAnimation();
+            });
+            
+            // 重置实验
+            resetButton.addEventListener('click', () => {
+                experimenting = false;
+                startButton.disabled = false;
+                
+                // 重置小球位置
+                const containerHeight = document.querySelector('.experiment-area').offsetHeight;
+                const groundHeight = 20; // 地面高度
+                const topPosition = containerHeight - groundHeight - (containerHeight - groundHeight) * (initialHeight / 15);
+                gravityObject.style.top = `${topPosition}px`;
+                
+                // 重置数据显示
+                fallTime.textContent = '0.00';
+                fallVelocity.textContent = '0.00';
+            });
+            
+            // 初始设置
+            massSlider.value = 1;
+            heightSlider.value = 15;
+            // 触发一次事件来设置初始值
+            const inputEvent = new Event('input');
+            massSlider.dispatchEvent(inputEvent);
+            heightSlider.dispatchEvent(inputEvent);
+        }
+        
+        // 题目解析显示切换
+        function initSolutions() {
+            const solutionButtons = document.querySelectorAll('[id^="show-solution-"]');
+            
+            solutionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const solutionId = button.id.replace('show-', '');
+                    const solution = document.getElementById(solutionId);
+                    
+                    if (solution.classList.contains('hidden')) {
+                        solution.classList.remove('hidden');
+                        button.innerHTML = '<i class="fas fa-chevron-down mr-2"></i>隐藏解析';
+                    } else {
+                        solution.classList.add('hidden');
+                        button.innerHTML = '<i class="fas fa-chevron-right mr-2"></i>显示解析';
+                    }
+                });
+            });
+        }
+        
+        // 初始化测验功能
+        function initQuiz() {
+            const quizQuestions = document.querySelectorAll('.quiz-question');
+            const prevButton = document.getElementById('prev-question');
+            const nextButton = document.getElementById('next-question');
+            const currentQuestion = document.getElementById('current-question');
+            const quizProgress = document.getElementById('quiz-progress');
+            
+            let currentQuestionIndex = 0;
+            const totalQuestions = quizQuestions.length;
+            
+            // 隐藏所有问题，只显示当前问题
+            function updateQuestionDisplay() {
+                quizQuestions.forEach((question, index) => {
+                    if (index === currentQuestionIndex) {
+                        question.style.display = 'block';
+                    } else {
+                        question.style.display = 'none';
+                    }
+                });
+                
+                // 更新进度显示
+                currentQuestion.textContent = currentQuestionIndex + 1;
+                quizProgress.style.width = `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`;
+                
+                // 更新按钮状态
+                prevButton.disabled = currentQuestionIndex === 0;
+                if (currentQuestionIndex === totalQuestions - 1) {
+                    nextButton.textContent = '完成';
+                } else {
+                    nextButton.textContent = '下一题';
+                }
+            }
+            
+            // 初始化选项点击事件
+            quizQuestions.forEach(question => {
+                const options = question.querySelectorAll('.quiz-option');
+                const feedback = question.querySelector('.quiz-feedback');
+                const correctFeedback = question.querySelector('.quiz-correct');
+                const incorrectFeedback = question.querySelector('.quiz-incorrect');
+                
+                options.forEach(option => {
+                    option.addEventListener('click', () => {
+                        // 清除之前的选择
+                        options.forEach(opt => {
+                            opt.classList.remove('selected', 'correct', 'incorrect');
+                            opt.querySelector('.option-dot').classList.add('hidden');
+                        });
+                        
+                        // 标记当前选择
+                        option.classList.add('selected');
+                        option.querySelector('.option-dot').classList.remove('hidden');
+                        
+                        // 如果有反馈区域，显示答案反馈
+                        if (feedback) {
+                            feedback.classList.remove('hidden');
+                            
+                            // 检查答案是否正确（示例：B是正确答案）
+                            // 检查答案是否正确（示例：B是正确答案）
+                            if (option.dataset.index === 'B') {
+                                option.classList.add('correct');
+                                correctFeedback.classList.remove('hidden');
+                                incorrectFeedback.classList.add('hidden');
+                            } else {
+                                option.classList.add('incorrect');
+                                correctFeedback.classList.add('hidden');
+                                incorrectFeedback.classList.remove('hidden');
+                                
+                                // 找到并标记正确答案
+                                options.forEach(opt => {
+                                    if (opt.dataset.index === 'B') {
+                                        opt.classList.add('correct');
+                                    }
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // 上一题按钮
+            prevButton.addEventListener('click', () => {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    updateQuestionDisplay();
+                }
+            });
+            
+            // 下一题按钮
+            nextButton.addEventListener('click', () => {
+                if (currentQuestionIndex < totalQuestions - 1) {
+                    currentQuestionIndex++;
+                    updateQuestionDisplay();
+                } else {
+                    // 最后一题，完成测验
+                    alert('测验已完成！');
+                    // 这里可以添加提交测验结果的逻辑
+                }
+            });
+            
+            // 初始显示第一题
+            updateQuestionDisplay();
+        }
+        
+        // 初始化侧边栏
+        function initSidebar() {
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const closeSidebar = document.getElementById('close-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.add('open');
+                overlay.classList.add('open');
+            });
+            
+            closeSidebar.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('open');
+            });
+            
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('open');
+            });
+        }
+        
+        // 页面加载完成后初始化所有功能
+        window.addEventListener('load', function() {
+            initKnowledgeMap();
+            initTabs();
+            initExperiment();
+            initSolutions();
+            initQuiz();
+            initSidebar();
+        });
+    </script>
+</body>
+</html>

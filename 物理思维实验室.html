@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>初中物理可视化学习平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --text-color: #2b2d42;
+            --bg-color: #f8f9fa;
+            --card-color: #ffffff;
+            --border-color: #e9ecef;
+        }
+        
+        .dark {
+            --primary-color: #4cc9f0;
+            --secondary-color: #7209b7;
+            --accent-color: #f72585;
+            --text-color: #e9ecef;
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --border-color: #333333;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .card {
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+        
+        .mind-map-node {
+            fill: var(--card-color);
+            stroke: var(--primary-color);
+            stroke-width: 2px;
+            rx: 10;
+            ry: 10;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .mind-map-node:hover {
+            fill: var(--primary-color);
+            stroke: var(--secondary-color);
+        }
+        
+        .mind-map-node-text {
+            fill: var(--text-color);
+            text-anchor: middle;
+            pointer-events: none;
+            font-size: 14px;
+        }
+        
+        .mind-map-link {
+            stroke: var(--border-color);
+            stroke-width: 2px;
+        }
+        
+        .node-active {
+            fill: var(--accent-color) !important;
+            stroke: var(--secondary-color);
+        }
+        
+        .experiment-area {
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .circuit-component {
+            cursor: grab;
+            transition: transform 0.2s ease;
+        }
+        
+        .circuit-component:hover {
+            transform: scale(1.1);
+        }
+        
+        .circuit-board {
+            position: relative;
+            height: 300px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            border: 2px dashed #ccc;
+        }
+        
+        .lens-container {
+            position: relative;
+            height: 300px;
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .lens {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 120px;
+            background: linear-gradient(90deg, rgba(173,216,230,0.1) 0%, rgba(173,216,230,0.8) 50%, rgba(173,216,230,0.1) 100%);
+            border-radius: 50%;
+        }
+        
+        .light-ray {
+            position: absolute;
+            height: 2px;
+            background-color: gold;
+            transform-origin: left center;
+        }
+        
+        .page-transition {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .circle-ripple {
+            position: absolute;
+            border-radius: 50%;
+            animation: ripple 1.5s linear infinite;
+            background: rgba(67, 97, 238, 0.3);
+        }
+        
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        /* 进度条样式 */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        /* 标签切换样式 */
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <header class="sticky top-0 z-50 bg-opacity-90 backdrop-filter backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-atom text-3xl text-blue-600 dark:text-blue-400"></i>
+                <h1 class="text-xl md:text-2xl font-bold">物理思维实验室</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                    <i class="fas fa-moon text-gray-600 dark:text-gray-300 dark:hidden"></i>
+                    <i class="fas fa-sun text-yellow-400 hidden dark:block"></i>
+                </button>
+                <button class="hidden md:block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                    <i class="fas fa-user-graduate mr-2"></i>登录
+                </button>
+            </div>
+        </div>
+        <nav class="container mx-auto px-4 py-2">
+            <ul class="flex space-x-1 md:space-x-4 overflow-x-auto pb-2 scrollbar-none">
+                <li><a href="#" class="tab active">首页</a></li>
+                <li><a href="#" class="tab">力学</a></li>
+                <li><a href="#" class="tab">电学</a></li>
+                <li><a href="#" class="tab">光学</a></li>
+                <li><a href="#" class="tab">热学</a></li>
+                <li><a href="#" class="tab">测验中心</a></li>
+                <li><a href="#" class="tab">学习报告</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 page-transition">
+        <!-- 欢迎区域 -->
+        <section class="mb-12">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="md:w-1/2 mb-8 md:mb-0">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">让物理学习<span class="text-blue-600 dark:text-blue-400">可视化</span>，更容易理解</h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">通过交互式思维导图和实验模拟，探索初中物理知识体系，让抽象概念变得具体可见。</p>
+                    <div class="flex flex-wrap gap-4">
+                        <button class="btn-primary px-6 py-3 rounded-lg flex items-center">
+                            <i class="fas fa-play-circle mr-2"></i>开始探索
+                        </button>
+                        <button class="border border-gray-300 dark:border-gray-600 px-6 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300">
+                            <i class="fas fa-book mr-2"></i>学习指南
+                        </button>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="relative w-full max-w-md">
+                        <svg class="w-full h-64 md:h-80" id="welcome-animation"></svg>
+                        <div class="circle-ripple" style="width: 150px; height: 150px; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习进度 -->
+        <section class="mb-12 card p-6 rounded-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">您的学习进度</h2>
+                <span class="text-sm text-gray-500 dark:text-gray-400">上次学习: 昨天</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium">力学</span>
+                        <span class="text-sm">75%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 75%"></div>
+                    </div>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium">电学</span>
+                        <span class="text-sm">45%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar bg-purple-500" style="width: 45%"></div>
+                    </div>
+                </div>
+                <div class="bg-amber-50 dark:bg-amber-900/30 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium">光学</span>
+                        <span class="text-sm">30%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar bg-amber-500" style="width: 30%"></div>
+                    </div>
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/30 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium">热学</span>
+                        <span class="text-sm">10%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar bg-red-500" style="width: 10%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">继续学习: <span class="font-medium text-black dark:text-white">电学 - 欧姆定律</span></p>
+                </div>
+                <button class="btn-primary px-4 py-2 rounded-lg text-sm">
+                    继续学习
+                </button>
+            </div>
+        </section>
+
+        <!-- 物理思维导图 -->
+        <section class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">物理知识思维导图</h2>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        <i class="fas fa-expand-arrows-alt mr-1"></i>全屏
+                    </button>
+                    <button class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        <i class="fas fa-download mr-1"></i>保存
+                    </button>
+                </div>
+            </div>
+            <div class="card p-4 rounded-xl overflow-hidden">
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto">
+                    <svg id="mind-map" class="w-full" style="min-height: 400px; min-width: 800px"></svg>
+                </div>
+                <div class="mt-4 text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <span>点击节点可以展开相关知识点和实验</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 交互实验区 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">交互实验室</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 电路实验 -->
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="bg-blue-600 dark:bg-blue-800 text-white p-4 flex justify-between items-center">
+                        <h3 class="text-xl font-medium">电路实验室</h3>
+                        <span class="bg-white text-blue-600 px-2 py-1 rounded-full text-xs font-bold">电学</span>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">拖拽电路元件到实验板上，组成完整电路，观察电流和电压的变化。</p>
+                        
+                        <div class="flex justify-center mb-4 gap-4">
+                            <div class="circuit-component bg-white dark:bg-gray-700 p-2 rounded-lg shadow-md flex flex-col items-center">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%234361ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12M7 2h10M9 12h6'/%3E%3Cline x1='9' y1='17' x2='15' y2='17'/%3E%3Cline x1='10' y1='22' x2='14' y2='22'/%3E%3C/svg%3E" alt="电池" class="mb-1">
+                                <span class="text-xs">电池</span>
+                            </div>
+                            <div class="circuit-component bg-white dark:bg-gray-700 p-2 rounded-lg shadow-md flex flex-col items-center">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%234361ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12h6'/%3E%3Cpath d='M16 12h6'/%3E%3Cpath d='M8 12h8'/%3E%3Crect x='8' y='8' width='8' height='8' rx='1'/%3E%3C/svg%3E" alt="电阻" class="mb-1">
+                                <span class="text-xs">电阻</span>
+                            </div>
+                            <div class="circuit-component bg-white dark:bg-gray-700 p-2 rounded-lg shadow-md flex flex-col items-center">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%234361ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12h8'/%3E%3Cpath d='M14 12h8'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3C/svg%3E" alt="开关" class="mb-1">
+                                <span class="text-xs">开关</span>
+                            </div>
+                            <div class="circuit-component bg-white dark:bg-gray-700 p-2 rounded-lg shadow-md flex flex-col items-center">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%234361ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3C/svg%3E" alt="灯泡" class="mb-1">
+                                <span class="text-xs">灯泡</span>
+                            </div>
+                        </div>
+                        
+                        <div class="circuit-board mb-4" id="circuit-board">
+                            <div class="text-center text-gray-500 dark:text-gray-400 h-full flex items-center justify-center">
+                                <p>将元件拖拽到此处组装电路</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                                <div class="text-sm font-medium mb-1">电流：</div>
+                                <div class="text-2xl font-bold" id="current-value">0.00 A</div>
+                            </div>
+                            <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                                <div class="text-sm font-medium mb-1">电压：</div>
+                                <div class="text-2xl font-bold" id="voltage-value">0.00 V</div>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition">
+                            开始实验
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 光学实验 -->
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="bg-amber-500 dark:bg-amber-600 text-white p-4 flex justify-between items-center">
+                        <h3 class="text-xl font-medium">凸透镜成像实验</h3>
+                        <span class="bg-white text-amber-500 px-2 py-1 rounded-full text-xs font-bold">光学</span>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">调整物体与凸透镜的距离，观察物像的变化情况。</p>
+                        
+                        <div class="lens-container mb-4" id="lens-container">
+                            <div class="lens"></div>
+                            <div class="light-ray" style="top: 45%; left: 10%; width: 40%; transform: rotate(5deg);"></div>
+                            <div class="light-ray" style="top: 50%; left: 10%; width: 40%;"></div>
+                            <div class="light-ray" style="top: 55%; left: 10%; width: 40%; transform: rotate(-5deg);"></div>
+                            <div class="object" style="position: absolute; left: 10%; top: 40%; width: 20px; height: 60px; background-color: #333; border-radius: 2px;"></div>
+                            <div class="image" style="position: absolute; right: 10%; top: 40%; width: 20px; height: 60px; background-color: #333; opacity: 0.5; border-radius: 2px;"></div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="text-sm font-medium mb-1 block">物距 (u)：</label>
+                            <input type="range" min="50" max="250" value="150" class="w-full" id="object-distance">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>近</span>
+                                <span>远</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="text-sm font-medium mb-1 block">焦距 (f)：</label>
+                            <input type="range" min="30" max="100" value="50" class="w-full" id="focal-length">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>短</span>
+                                <span>长</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-amber-50 dark:bg-amber-900/30 p-3 rounded-lg text-sm">
+                            <div class="font-medium mb-1">凸透镜成像规律：</div>
+                            <ol class="list-decimal pl-5 space-y-1">
+                                <li>当物距 u > 2f 时，成倒立缩小的实像</li>
+                                <li>当物距 u = 2f 时，成倒立等大的实像</li>
+                                <li>当 f < u < 2f 时，成倒立放大的实像</li>
+                                <li>当 u < f 时，成正立放大的虚像</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习挑战 -->
+        <section class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">今日学习挑战</h2>
+                <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="h-3 bg-green-500"></div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-xs font-medium">
+                                初级
+                            </div>
+                            <div class="text-gray-400 text-sm">用时：约5分钟</div>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-3">重力与自由落体</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">探索重力加速度与物体下落时间的关系，完成落体运动实验。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                    <i class="fas fa-trophy text-xs"></i>
+                                </div>
+                                <span class="ml-2 text-sm">+15分</span>
+                            </div>
+                            <button class="btn-primary px-4 py-2 rounded-lg text-sm flex items-center">
+                                开始挑战
+                                <i class="fas fa-chevron-right ml-2 text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="h-3 bg-yellow-500"></div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-xs font-medium">
+                                中级
+                            </div>
+                            <div class="text-gray-400 text-sm">用时：约10分钟</div>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-3">欧姆定律测定</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">搭建测量电阻的实验电路，验证电压、电流和电阻三者的关系。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                    <i class="fas fa-trophy text-xs"></i>
+                                </div>
+                                <span class="ml-2 text-sm">+30分</span>
+                            </div>
+                            <button class="btn-primary px-4 py-2 rounded-lg text-sm flex items-center">
+                                开始挑战
+                                <i class="fas fa-chevron-right ml-2 text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="h-3 bg-red-500"></div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-xs font-medium">
+                                高级
+                            </div>
+                            <div class="text-gray-400 text-sm">用时：约15分钟</div>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-3">杠杆平衡难题</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">解决多点受力的杠杆平衡问题，掌握力矩平衡原理。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                    <i class="fas fa-trophy text-xs"></i>
+                                </div>
+                                <span class="ml-2 text-sm">+50分</span>
+                            </div>
+                            <button class="btn-primary px-4 py-2 rounded-lg text-sm flex items-center">
+                                开始挑战
+                                <i class="fas fa-chevron-right ml-2 text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习数据分析 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">学习数据分析</h2>
+            <div class="card p-6 rounded-xl">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="md:w-2/3">
+                        <h3 class="text-lg font-semibold mb-4">知识点掌握情况</h3>
+                        <canvas id="knowledge-chart" height="250"></canvas>
+                    </div>
+                    <div class="md:w-1/3">
+                        <h3 class="text-lg font-semibold mb-4">推荐复习知识点</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">杠杆平衡条件</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">正确率: 40%</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                                <div class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center text-yellow-600 dark:text-yellow-400 mr-3">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">光的反射定律</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">正确率: 65%</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                                <div class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center text-yellow-600 dark:text-yellow-400 mr-3">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">串并联电路计算</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">正确率: 70%</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">压强计算</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">正确率: 90%</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-100 dark:bg-gray-800 py-8 border-t border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fas fa-atom text-3xl text-blue-600 dark:text-blue-400 mr-3"></i>
+                    <h2 class="text-xl font-bold">物理思维实验室</h2>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fab fa-github text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fab fa-weixin text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fab fa-weibo text-xl"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6 flex flex-col md:flex-row justify-between">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        作者姓名: 物理学习助手团队
+                    </p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <a href="https://twitter.com/PhysicsLearning" class="hover:underline">Twitter/X: @PhysicsLearning</a>
+                    </p>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    © 2023 物理思维实验室. 保留所有权利.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 主题切换功能
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        // 检查系统主题偏好
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+        
+        // 绘制思维导图
+        function drawMindMap() {
+            const svg = d3.select("#mind-map");
+            const width = parseInt(svg.style('width'));
+            const height = 400;
+            
+            // 清除现有内容
+            svg.selectAll("*").remove();
+            
+            // 设置思维导图数据
+            const data = {
+                name: "初中物理",
+                children: [
+                    {
+                        name: "力学",
+                        children: [
+                            { name: "重力" },
+                            { name: "浮力" },
+                            { name: "压强" },
+                            { name: "杠杆" },
+                            { name: "运动" }
+                        ]
+                    },
+                    {
+                        name: "电学",
+                        children: [
+                            { name: "电流" },
+                            { name: "电压" },
+                            { name: "电阻" },
+                            { name: "欧姆定律" },
+                            { name: "电功率" }
+                        ]
+                    },
+                    {
+                        name: "光学",
+                        children: [
+                            { name: "光的直线传播" },
+                            { name: "光的反射" },
+                            { name: "光的折射" },
+                            { name: "透镜" },
+                            { name: "色散" }
+                        ]
+                    },
+                    {
+                        name: "热学",
+                        children: [
+                            { name: "温度" },
+                            { name: "热量" },
+                            { name: "比热容" },
+                            { name: "热传递" },
+                            { name: "热膨胀" }
+                        ]
+                    }
+                ]
+            };
+            
+            // 创建层次结构
+            const root = d3.hierarchy(data);
+            
+            // 设置节点位置
+            const treeLayout = d3.tree().size([width - 100, height - 80]);
+            treeLayout(root);
+            
+            // 绘制连接线
+            svg.selectAll(".mind-map-link")
+                .data(root.links())
+                .enter()
+                .append("path")
+                .attr("class", "mind-map-link")
+                .attr("d", d => {
+                    return `M${d.source.x},${d.source.y}C${d.source.x},${(d.source.y + d.target.y) / 2} ${d.target.x},${(d.source.y + d.target.y) / 2} ${d.target.x},${d.target.y}`;
+                });
+            
+            // 绘制节点
+            const nodes = svg.selectAll(".mind-map-node-group")
+                .data(root.descendants())
+                .enter()
+                .append("g")
+                .attr("class", "mind-map-node-group")
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+            
+            // 添加节点背景
+            nodes.append("rect")
+                .attr("class", "mind-map-node")
+                .attr("width", d => d.data.name.length * 14 + 20)
+                .attr("height", 30)
+                .attr("x", d => -(d.data.name.length * 14 + 20) / 2)
+                .attr("y", -15);
+            
+            // 添加节点文本
+            nodes.append("text")
+                .attr("class", "mind-map-node-text")
+                .attr("dy", 5)
+                .text(d => d.data.name);
+            
+            // 添加点击事件
+            nodes.on("click", function(event, d) {
+                d3.selectAll(".mind-map-node").classed("node-active", false);
+                d3.select(this).select(".mind-map-node").classed("node-active", true);
+                
+                // 这里可以添加点击后的逻辑，例如显示相关的实验或详细内容
+                console.log("选中了节点:", d.data.name);
+            });
+        }
+        
+        // 绘制知识点掌握情况图表
+        function drawKnowledgeChart() {
+            const ctx = document.getElementById('knowledge-chart').getContext('2d');
+            
+            // 检查当前主题
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#e9ecef' : '#2b2d42';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            
+            const chart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['力与运动', '电路', '光学', '热学', '声学', '功与能', '压强与浮力'],
+                    datasets: [{
+                        label: '掌握程度',
+                        data: [85, 65, 55, 70, 90, 75, 60],
+                        backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                        borderColor: 'rgba(67, 97, 238, 1)',
+                        pointBackgroundColor: 'rgba(67, 97, 238, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(67, 97, 238, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: gridColor
+                            },
+                            grid: {
+                                color: gridColor
+                            },
+                            pointLabels: {
+                                color: textColor
+                            },
+                            ticks: {
+                                color: textColor,
+                                backdropColor: 'transparent'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: textColor
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return chart;
+        }
+        
+        // 绘制欢迎区域的动画
+        function drawWelcomeAnimation() {
+            const svg = d3.select("#welcome-animation");
+            const width = parseInt(svg.style('width'));
+            const height = 300;
+            
+            // 清除现有内容
+            svg.selectAll("*").remove();
+            
+            // 添加粒子
+            const particles = [];
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 4 + 1,
+                    speed: Math.random() * 2 + 0.5,
+                    angle: Math.random() * Math.PI * 2,
+                    color: d3.rgb(
+                        Math.floor(Math.random() * 100 + 100),
+                        Math.floor(Math.random() * 100 + 100),
+                        Math.floor(Math.random() * 155 + 100)
+                    )
+                });
+            }
+            
+            // 绘制粒子
+            svg.selectAll(".particle")
+                .data(particles)
+                .enter()
+                .append("circle")
+                .attr("class", "particle")
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", d => d.radius)
+                .attr("fill", d => d.color);
+            
+            // 添加物理元素
+            svg.append("circle")
+                .attr("cx", width / 2)
+                .attr("cy", height / 2)
+                .attr("r", 50)
+                .attr("fill", "none")
+                .attr("stroke", "#4361ee")
+                .attr("stroke-width", 2)
+                .attr("stroke-dasharray", "10,5");
+            
+            svg.append("circle")
+                .attr("cx", width / 2)
+                .attr("cy", height / 2)
+                .attr("r", 40)
+                .attr("fill", "none")
+                .attr("stroke", "#f72585")
+                .attr("stroke-width", 1.5);
+            
+            svg.append("circle")
+                .attr("cx", width / 2)
+                .attr("cy", height / 2)
+                .attr("r", 10)
+                .attr("fill", "#4361ee");
+            
+            // 添加电子
+            const electronsData = [];
+            const numElectrons = 3;
+            for (let i = 0; i < numElectrons; i++) {
+                electronsData.push({
+                    angle: (i * 2 * Math.PI) / numElectrons,
+                    speed: 0.01
+                });
+            }
+            
+            const electrons = svg.selectAll(".electron")
+                .data(electronsData)
+                .enter()
+                .append("circle")
+                .attr("class", "electron")
+                .attr("r", 6)
+                .attr("fill", "#f72585");
+            
+            // 动画
+            function animate() {
+                // 更新粒子位置
+                svg.selectAll(".particle")
+                    .each(function(d) {
+                        d.x += Math.cos(d.angle) * d.speed;
+                        d.y += Math.sin(d.angle) * d.speed;
+                        
+                        // 边界检查
+                        if (d.x < 0 || d.x > width) {
+                            d.angle = Math.PI - d.angle;
+                        }
+                        if (d.y < 0 || d.y > height) {
+                            d.angle = -d.angle;
+                        }
+                    })
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+                
+                // 更新电子位置
+                electrons.each(function(d) {
+                    d.angle += d.speed;
+                })
+                .attr("cx", d => width / 2 + 40 * Math.cos(d.angle))
+                .attr("cy", d => height / 2 + 40 * Math.sin(d.angle));
+                
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+        
+        // 初始化凸透镜实验
+        function initLensExperiment() {
+            const objectDistance = document.getElementById('object-distance');
+            const focalLength = document.getElementById('focal-length');
+            const lensContainer = document.getElementById('lens-container');
+            const object = lensContainer.querySelector('.object');
+            const image = lensContainer.querySelector('.image');
+            const lightRays = lensContainer.querySelectorAll('.light-ray');
+            
+            function updateLensExperiment() {
+                const u = parseInt(objectDistance.value);
+                const f = parseInt(focalLength.value);
+                
+                // 设置物体位置
+                const containerWidth = lensContainer.offsetWidth;
+                const containerHeight = lensContainer.offsetHeight;
+                const centerX = containerWidth / 2;
+                
+                // 计算物体位置（从中心点向左的距离）
+                const objectX = centerX - u * (containerWidth / 300);
+                object.style.left = `${objectX}px`;
+                
+                // 根据透镜成像公式计算像的位置
+                // 1/f = 1/u + 1/v
+                let v;
+                let imageHeight;
+                let isReal = true;
+                
+                if (u > f) {
+                    v = (u * f) / (u - f);
+                    imageHeight = object.offsetHeight * (v / u);
+                } else if (u < f) {
+                    v = (u * f) / (u - f);
+                    imageHeight = object.offsetHeight * (Math.abs(v) / u);
+                    isReal = false;
+                } else {
+                    v = Infinity;
+                    imageHeight = object.offsetHeight;
+                }
+                
+                // 设置像的位置和大小
+                const imageX = centerX + (isReal ? v : Math.abs(v)) * (containerWidth / 300);
+                image.style.right = `${containerWidth - imageX}px`;
+                image.style.height = `${imageHeight}px`;
+                image.style.top = `${(containerHeight - imageHeight) / 2}px`;
+                
+                // 设置像的可见性和样式
+                if (isReal) {
+                    image.style.opacity = '0.8';
+                    image.style.borderStyle = 'solid';
+                } else {
+                    image.style.opacity = '0.4';
+                    image.style.borderStyle = 'dashed';
+                }
+                
+                // 更新光线
+                const objectCenter = objectX + object.offsetWidth / 2;
+                const objectTop = parseFloat(object.style.top) || 0;
+                const objectHeight = object.offsetHeight;
+                
+                // 更新光线位置和角度
+                lightRays.forEach((ray, index) => {
+                    const startY = objectTop + objectHeight * (0.3 + index * 0.2);
+                    ray.style.top = `${startY}px`;
+                    ray.style.left = `${objectX + object.offsetWidth}px`;
+                    
+                    const rayLength = centerX - (objectX + object.offsetWidth);
+                    ray.style.width = `${rayLength}px`;
+                    
+                    // 根据指数设置不同的角度
+                    let angle = 0;
+                    if (index === 0) angle = -5;
+                    else if (index === 2) angle = 5;
+                    
+                    ray.style.transform = `rotate(${angle}deg)`;
+                });
+            }
+            
+            objectDistance.addEventListener('input', updateLensExperiment);
+            focalLength.addEventListener('input', updateLensExperiment);
+            
+            // 初始更新
+            updateLensExperiment();
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            drawMindMap();
+            drawKnowledgeChart();
+            drawWelcomeAnimation();
+            initLensExperiment();
+            
+            // 调整窗口大小时重绘图表
+            window.addEventListener('resize', function() {
+                drawMindMap();
+            });
+        });
+        
+        // 处理标签切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

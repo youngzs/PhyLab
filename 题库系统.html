@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物理题库 - 物理思维实验室</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --text-color: #2b2d42;
+            --bg-color: #f8f9fa;
+            --card-color: #ffffff;
+            --border-color: #e9ecef;
+        }
+        
+        .dark {
+            --primary-color: #4cc9f0;
+            --secondary-color: #7209b7;
+            --accent-color: #f72585;
+            --text-color: #e9ecef;
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --border-color: #333333;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .card {
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+        
+        .btn-outline {
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .quiz-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .quiz-option.selected {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-color: var(--primary-color);
+        }
+        
+        .quiz-option.correct {
+            background-color: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+        }
+        
+        .quiz-option.incorrect {
+            background-color: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+        }
+        
+        .filter-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-right: 4px;
+        }
+        
+        .difficulty-easy {
+            background-color: #d1fae5;
+            color: #047857;
+        }
+        
+        .difficulty-medium {
+            background-color: #fef3c7;
+            color: #b45309;
+        }
+        
+        .difficulty-hard {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .category-mechanics {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .category-electricity {
+            background-color: #e0e7ff;
+            color: #4338ca;
+        }
+        
+        .category-optics {
+            background-color: #fae8ff;
+            color: #86198f;
+        }
+        
+        .category-thermology {
+            background-color: #ffedd5;
+            color: #9a3412;
+        }
+        
+        .timer {
+            font-family: monospace;
+            font-size: 1.2rem;
+        }
+        
+        .formula {
+            font-family: 'Times New Roman', serif;
+            padding: 8px 12px;
+            background-color: rgba(67, 97, 238, 0.1);
+            border-left: 3px solid var(--primary-color);
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        .drawing-area {
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            min-height: 200px;
+            background-color: rgba(67, 97, 238, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: crosshair;
+        }
+        
+        .drawing-area canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .feedback-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        
+        .hint-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .hint-container.show {
+            max-height: 500px;
+        }
+        
+        .mistake-box {
+            border-left: 3px solid #ef4444;
+            background-color: rgba(239, 68, 68, 0.1);
+            padding: 12px 16px;
+            border-radius: 4px;
+        }
+        
+        .correct-box {
+            border-left: 3px solid #10b981;
+            background-color: rgba(16, 185, 129, 0.1);
+            padding: 12px 16px;
+            border-radius: 4px;
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.3s;
+            stroke: var(--primary-color);
+            stroke-width: 4;
+            fill: transparent;
+        }
+        
+        .progress-ring-background {
+            stroke: var(--border-color);
+            stroke-width: 4;
+            fill: transparent;
+        }
+        
+        .tab-button {
+            padding: 8px 16px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .question-card {
+            transform: scale(0.95);
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+        
+        .question-card.active {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+        
+        .animation-fadeIn {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header class="sticky top-0 z-50 bg-opacity-90 backdrop-filter backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <a href="index.html" class="flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <i class="fas fa-atom text-3xl text-blue-600 dark:text-blue-400"></i>
+                    <h1 class="text-xl md:text-2xl font-bold ml-2">物理思维实验室</h1>
+                </a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                    <i class="fas fa-moon text-gray-600 dark:text-gray-300 dark:hidden"></i>
+                    <i class="fas fa-sun text-yellow-400 hidden dark:block"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="hidden md:inline text-sm font-medium">学生账号</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 animation-fadeIn">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold">物理题库中心</h1>
+            <div class="flex items-center">
+                <div class="hidden md:flex items-center bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium">
+                    <i class="fas fa-star mr-1"></i>
+                    <span>积分: 1280</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 欢迎区域 -->
+        <section class="mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2">
+                    <div class="card p-6 rounded-xl">
+                        <h2 class="text-xl font-bold mb-4">个性化学习分析</h2>
+                        <div class="flex flex-col md:flex-row">
+                            <div class="md:w-1/2 mb-4 md:mb-0 md:pr-4">
+                                <div class="relative">
+                                    <canvas id="mastery-chart" height="200"></canvas>
+                                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                                        <div class="text-3xl font-bold">73%</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">总体掌握度</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md:w-1/2 md:pl-4 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700 pt-4 md:pt-0 md:pl-8">
+                                <h3 class="text-lg font-semibold mb-3">学习建议</h3>
+                                <ul class="space-y-3">
+                                    <li class="flex items-start">
+                                        <div class="text-red-500 dark:text-red-400 mt-0.5 mr-2">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                        </div>
+                                        <div class="text-sm">需要重点复习<span class="font-medium">光的折射</span>相关内容，正确率低于60%</div>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <div class="text-amber-500 dark:text-amber-400 mt-0.5 mr-2">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </div>
+                                        <div class="text-sm">建议巩固<span class="font-medium">牛顿第二定律</span>的计算题，易出现计算错误</div>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <div class="text-green-500 dark:text-green-400 mt-0.5 mr-2">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <div class="text-sm"><span class="font-medium">电学基础</span>掌握良好，可以尝试更高难度的题目</div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-200 dark:border-gray-700 mt-6 pt-4">
+                            <div class="flex justify-between mb-2">
+                                <div class="text-sm font-medium">本周学习目标</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">完成度: 65%</div>
+                            </div>
+                            <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700 mb-4">
+                                <div class="h-full rounded-full bg-blue-600 dark:bg-blue-400" style="width: 65%"></div>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <div class="flex items-center text-sm">
+                                    <div class="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
+                                    <span>已完成: 65题</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <div class="w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600 mr-1"></div>
+                                    <span>目标: 100题</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-1">
+                    <div class="card p-6 rounded-xl">
+                        <h2 class="text-xl font-bold mb-4">快速开始</h2>
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition cursor-pointer">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                                        <i class="fas fa-random"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium">每日练习</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">系统推荐的10道题目</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition cursor-pointer">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium">模拟测试</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">30分钟计时测验</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition cursor-pointer">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 mr-3">
+                                        <i class="fas fa-bolt"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium">错题重做</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">来自您的错题本</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="w-full py-3 rounded-lg btn-primary mt-2">
+                                <i class="fas fa-search mr-2"></i>
+                                找题练习
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 题库筛选区域 -->
+        <section class="mb-8">
+            <div class="card p-6 rounded-xl">
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-6">
+                    <h2 class="text-xl font-bold mb-4 md:mb-0">题库检索</h2>
+                    <div class="relative">
+                        <input type="text" placeholder="搜索题目关键词..." class="w-full md:w-64 border border-gray-300 dark:border-gray-600 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800">
+                        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- 章节筛选 -->
+                    <div>
+                        <div class="font-medium mb-2">按章节筛选</div>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="filter-btn active px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">全部</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">力学</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">电学</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">光学</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">热学</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 难度筛选 -->
+                    <div>
+                        <div class="font-medium mb-2">按难度筛选</div>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="filter-btn active px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">全部</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">
+                                <span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-1"></span>
+                                基础
+                            </button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">
+                                <span class="inline-block w-3 h-3 rounded-full bg-yellow-500 mr-1"></span>
+                                中等
+                            </button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">
+                                <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-1"></span>
+                                困难
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 题型筛选 -->
+                    <div>
+                        <div class="font-medium mb-2">按题型筛选</div>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="filter-btn active px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">全部</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">选择题</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">填空题</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">计算题</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">实验题</button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">综合题</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 更多筛选条件 -->
+                    <div>
+                        <div class="font-medium mb-2">更多筛选</div>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm flex items-center">
+                                <i class="fas fa-bookmark mr-1 text-blue-500"></i>
+                                收藏题目
+                            </button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm flex items-center">
+                                <i class="fas fa-times-circle mr-1 text-red-500"></i>
+                                错题本
+                            </button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm flex items-center">
+                                <i class="fas fa-history mr-1 text-purple-500"></i>
+                                最近做过
+                            </button>
+                            <button class="filter-btn px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm flex items-center">
+                                <i class="fas fa-flag mr-1 text-amber-500"></i>
+                                经典题型
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">当前筛选: 全部题目</div>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-sm">
+                            重置筛选
+                        </button>
+                        <button class="btn-primary px-3 py-1 rounded-md text-sm">
+                            应用筛选
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 题目列表 -->
+        <section class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">题目列表</h2>
+                <div class="flex items-center">
+                    <span class="text-sm text-gray-500 dark:text-gray-400 mr-2">排序方式:</span>
+                    <select class="border border-gray-300 dark:border-gray-600 rounded-md p-1 text-sm bg-white dark:bg-gray-800">
+                        <option>最新添加</option>
+                        <option>难度递增</option>
+                        <option>难度递减</option>
+                        <option>推荐优先</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 题目1 -->
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between mb-4">
+                            <div class="flex">
+                                <span class="tag difficulty-easy mr-2">基础</span>
+                                <span class="tag category-mechanics">力学</span>
+                            </div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                ID: PHY-001
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mb-2">自由落体运动中，物体的加速度是多少？</h3>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                    <div class="w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400"></div>
+                                </div>
+                                <div>9.8 m/s²</div>
+                            </div>
+                            <div class="flex items-center text-gray-500 dark:text-gray-400">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>与物体质量有关</div>
+                            </div>
+                            <div class="flex items-center text-gray-500 dark:text-gray-400">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>0 m/s²</div>
+                            </div>
+                            <div class="flex items-center text-gray-500 dark:text-gray-400">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>5 m/s²</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                            <div class="flex items-start">
+                                <div class="text-green-600 dark:text-green-400 mr-3">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium">回答正确</div>
+                                    <p class="text-sm mt-1">自由落体运动中，物体的加速度等于重力加速度，在地球表面约为9.8 m/s²。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <button class="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mr-4">
+                                    <i class="far fa-bookmark"></i>
+                                </button>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-users mr-1"></i>
+                                    94% 正确率
+                                </div>
+                            </div>
+                            <button class="btn-outline px-3 py-1 rounded-md text-sm">
+                                查看详解
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 题目2 -->
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between mb-4">
+                            <div class="flex">
+                                <span class="tag difficulty-medium mr-2">中等</span>
+                                <span class="tag category-electricity">电学</span>
+                            </div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                ID: PHY-042
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mb-2">如图所示的电路中，电阻R为5Ω，电源电压为10V，则电路中的电流为多少？</h3>
+                        
+                        <div class="mb-4">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='100' viewBox='0 0 200 100'%3E%3Crect x='0' y='0' width='200' height='100' fill='white'/%3E%3Cline x1='40' y1='30' x2='40' y2='70' stroke='black' stroke-width='2'/%3E%3Cline x1='50' y1='30' x2='50' y2='70' stroke='black' stroke-width='2'/%3E%3Cline x1='40' y1='30' x2='20' y2='30' stroke='black' stroke-width='2'/%3E%3Cline x1='50' y1='30' x2='70' y2='30' stroke='black' stroke-width='2'/%3E%3Cline x1='40' y1='70' x2='20' y2='70' stroke='black' stroke-width='2'/%3E%3Cline x1='50' y1='70' x2='70' y2='70' stroke='black' stroke-width='2'/%3E%3Cline x1='20' y1='30' x2='20' y2='70' stroke='black' stroke-width='2'/%3E%3Ctext x='45' y='55' font-family='Arial' font-size='12' text-anchor='middle'%3E10V%3C/text%3E%3Cline x1='70' y1='30' x2='130' y2='30' stroke='black' stroke-width='2'/%3E%3Cline x1='70' y1='70' x2='130' y2='70' stroke='black' stroke-width='2'/%3E%3Cline x1='130' y1='30' x2='130' y2='70' stroke='black' stroke-width='2'/%3E%3Ctext x='130' y='50' font-family='Arial' font-size='12' text-anchor='middle'%3E5Ω%3C/text%3E%3C/svg%3E" alt="电路图" class="mx-auto mb-4">
+                            
+                            <div class="formula text-center">
+                                I = U / R
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                    <div class="w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400"></div>
+                                </div>
+                                <div>2A</div>
+                            </div>
+                            <div class="flex items-center text-gray-500 dark:text-gray-400">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>5A</div>
+                            </div>
+                            <div class="flex items-center text-gray-500 dark:text-gray-400">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>0.5A</div>
+                            </div>
+                            <div class="flex items-center text-gray-500 dark:text-gray-400">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>10A</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <button class="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 mr-4">
+                                    <i class="fas fa-bookmark"></i>
+                                </button>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-users mr-1"></i>
+                                    87% 正确率
+                                </div>
+                            </div>
+                            <button class="btn-outline px-3 py-1 rounded-md text-sm">
+                                查看详解
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 题目3 -->
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between mb-4">
+                            <div class="flex">
+                                <span class="tag difficulty-hard mr-2">困难</span>
+                                <span class="tag category-optics">光学</span>
+                            </div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                ID: PHY-087
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mb-2">一束光从空气射入水中，入射角为30°，求折射角。（空气折射率为1，水的折射率为1.33）</h3>
+                        
+                        <div class="formula mb-4">
+                            n₁sinθ₁ = n₂sinθ₂
+                        </div>
+                        
+                        <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg mb-4">
+                            <div class="flex items-start">
+                                <div class="text-red-600 dark:text-red-400 mr-3">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium">上次回答错误</div>
+                                    <p class="text-sm mt-1">根据折射定律，正确应用公式计算：1×sin30° = 1.33×sinθ₂</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <button class="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mr-4">
+                                    <i class="far fa-bookmark"></i>
+                                </button>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-users mr-1"></i>
+                                    56% 正确率
+                                </div>
+                            </div>
+                            <button class="btn-primary px-3 py-1 rounded-md text-sm">
+                                重新做题
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 题目4 -->
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between mb-4">
+                            <div class="flex">
+                                <span class="tag difficulty-medium mr-2">中等</span>
+                                <span class="tag category-mechanics">力学</span>
+                            </div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                ID: PHY-023
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mb-2">一个质量为0.5kg的物体受到2N的水平拉力，如果物体与水平面的动摩擦系数为0.2，求物体的加速度。</h3>
+                        
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-question-circle mr-1"></i>
+                                <span>计算题 - 使用力学公式</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <button class="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mr-4">
+                                    <i class="far fa-bookmark"></i>
+                                </button>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-users mr-1"></i>
+                                    72% 正确率
+                                </div>
+                            </div>
+                            <button class="btn-primary px-3 py-1 rounded-md text-sm">
+                                开始解答
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 题目5 -->
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between mb-4">
+                            <div class="flex">
+                                <span class="tag difficulty-easy mr-2">基础</span>
+                                <span class="tag category-thermology">热学</span>
+                            </div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                ID: PHY-105
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mb-2">以下关于热膨胀的说法，正确的是：</h3>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>气体的热膨胀系数小于液体</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>所有物质升温时都会膨胀</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>水在0-4℃之间升温会收缩</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mr-3">
+                                </div>
+                                <div>固体的热膨胀与材料无关</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <button class="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mr-4">
+                                    <i class="far fa-bookmark"></i>
+                                </button>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-users mr-1"></i>
+                                    68% 正确率
+                                </div>
+                            </div>
+                            <button class="btn-primary px-3 py-1 rounded-md text-sm">
+                                开始解答
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 题目6 -->
+                <div class="card rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between mb-4">
+                            <div class="flex">
+                                <span class="tag difficulty-hard mr-2">困难</span>
+                                <span class="tag category-mechanics">力学</span>
+                            </div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                ID: PHY-064
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mb-2">实验题：测定斜面上物体的滑动摩擦系数</h3>
+                        
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            <p>设计一个实验，测定木块在木质斜面上的滑动摩擦系数。请描述实验步骤、所需器材和数据处理方法。</p>
+                        </div>
+                        
+                        <div class="badge bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+                            <i class="fas fa-flask mr-1"></i>
+                            实验题
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <button class="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mr-4">
+                                    <i class="far fa-bookmark"></i>
+                                </button>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-users mr-1"></i>
+                                    45% 正确率
+                                </div>
+                            </div>
+                            <button class="btn-primary px-3 py-1 rounded-md text-sm">
+                                开始解答
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-center mt-8">
+                <nav class="inline-flex items-center">
+                    <button class="h-8 w-8 rounded-l-md border border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                        <i class="fas fa-chevron-left text-gray-500 dark:text-gray-400"></i>
+                    </button>
+                    <button class="h-8 w-8 border-t border-b border-gray-300 dark:border-gray-600 flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white">1</button>
+                    <button class="h-8 w-8 border border-gray-300 dark:border-gray-600 flex items-center justify-center">2</button>
+                    <button class="h-8 w-8 border-t border-b border-gray-300 dark:border-gray-600 flex items-center justify-center">3</button>
+                    <button class="h-8 w-8 border border-gray-300 dark:border-gray-600 flex items-center justify-center">4</button>
+                    <button class="h-8 w-8 border-t border-b border-gray-300 dark:border-gray-600 flex items-center justify-center">...</button>
+                    <button class="h-8 w-8 border border-gray-300 dark:border-gray-600 flex items-center justify-center">12</button>
+                    <button class="h-8 w-8 rounded-r-md border border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                        <i class="fas fa-chevron-right text-gray-500 dark:text-gray-400"></i>
+                    </button>
+                </nav>
+            </div>
+        </section>
+        
+        <!-- 题目解答示例 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">题目解答示例</h2>
+            
+            <div class="card p-6 rounded-xl">
+                <div class="flex flex-col md:flex-row mb-6">
+                    <div class="md:w-2/3 md:pr-6 mb-6 md:mb-0">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex">
+                                <span class="tag difficulty-medium mr-2">中等</span>
+                                <span class="tag category-optics">光学</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="timer font-mono mr-3">04:23</div>
+                                <button class="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-xs font-medium">
+                                    结束计时
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold mb-4">平面镜成像特点分析题</h3>
+                        
+                        <div class="mb-6">
+                            <p class="mb-4">如图所示，一个物体O放置在平面镜前，物距为d。关于平面镜成像，回答下列问题：</p>
+                            
+                            <div class="flex justify-center mb-4">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='150' viewBox='0 0 300 150'%3E%3Crect x='0' y='0' width='300' height='150' fill='white'/%3E%3Cline x1='150' y1='30' x2='150' y2='120' stroke='black' stroke-width='2'/%3E%3Ctext x='160' y='75' font-family='Arial' font-size='12'%3E平面镜%3C/text%3E%3Ccircle cx='80' cy='75' r='10' fill='blue'/%3E%3Ctext x='75' y='95' font-family='Arial' font-size='12'%3EO%3C/text%3E%3Cline x1='80' y1='75' x2='150' y2='75' stroke='blue' stroke-width='1' stroke-dasharray='5,5'/%3E%3Ctext x='110' y='70' font-family='Arial' font-size='12'%3Ed%3C/text%3E%3Ccircle cx='220' cy='75' r='10' fill='red' fill-opacity='0.5'/%3E%3Ctext x='215' y='95' font-family='Arial' font-size='12'%3EI%3C/text%3E%3Cline x1='150' y1='75' x2='220' y2='75' stroke='red' stroke-width='1' stroke-dasharray='5,5'/%3E%3C/svg%3E" alt="平面镜成像图" class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                            </div>
+                            
+                            <ol class="list-decimal pl-5 space-y-3">
+                                <li>像距等于多少？像的大小与物体相比如何？</li>
+                                <li>像是实像还是虚像？为什么？</li>
+                                <li>如果物体远离平面镜移动了2cm，像的位置如何变化？</li>
+                                <li>平面镜成像有哪些特点？</li>
+                            </ol>
+                        </div>
+                        
+                        <!-- 标签页导航 -->
+                        <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
+                            <div class="flex">
+                                <button class="tab-button active" data-tab="answer">我的答案</button>
+                                <button class="tab-button" data-tab="hint">提示</button>
+                                <button class="tab-button" data-tab="solution">解析</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 标签页内容 -->
+                        <div class="tab-content active" id="answer-content">
+                            <textarea class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-40 bg-white dark:bg-gray-800" placeholder="在此输入您的答案..."></textarea>
+                            
+                            <div class="mt-4">
+                                <div class="text-sm font-medium mb-2">作图区域（可选）</div>
+                                <div class="drawing-area">
+                                    <div class="text-gray-400 dark:text-gray-500">点击此处进行作图</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3 mt-4">
+                                <button class="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg text-sm">
+                                    保存草稿
+                                </button>
+                                <button class="btn-primary px-4 py-2 rounded-lg text-sm">
+                                    提交答案
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="hint-content">
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">解题提示</h4>
+                                <ul class="list-disc pl-5 space-y-2 text-sm">
+                                    <li>平面镜成像的基本规律是：像距等于物距</li>
+                                    <li>平面镜成的像是等大的，但左右相反</li>
+                                    <li>思考光路可逆原理，判断像的类型</li>
+                                    <li>当物体移动时，像的移动方向与物体相同</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="solution-content">
+                            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                                <h4 class="font-medium text-green-800 dark:text-green-200 mb-2">标准答案</h4>
+                                <ol class="list-decimal pl-5 space-y-2 text-sm">
+                                    <li>像距等于物距，即也为d；像的大小与物体完全相同。</li>
+                                    <li>平面镜成的像是虚像，因为光线并不真正从像所在的位置发出，而是由平面镜反射后的延长线的交点。</li>
+                                    <li>如果物体远离平面镜移动了2cm，像也会远离平面镜移动2cm。即像距变为d+2cm。</li>
+                                    <li>平面镜成像的特点：1) 像距等于物距；2) 像与物等大；3) 像与物关于平面镜对称；4) 成虚像；5) 左右相反。</li>
+                                </ol>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h4 class="font-medium mb-2">解题思路</h4>
+                                <p class="text-sm mb-3">平面镜成像是由光的反射规律决定的。当光线从物体射向平面镜时，遵循反射定律（入射角等于反射角），观察者看到的是反射光线的延长线的交点位置。</p>
+                                <p class="text-sm mb-3">根据几何光学原理，可以证明平面镜成的像与物关于平面镜面对称，这导致像距等于物距，而且像的大小与物体相同。</p>
+                                <p class="text-sm">由于光线不是真正从像所在位置发出，所以平面镜成的像是虚像，不能在屏幕上接收到。</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="md:w-1/3 md:border-l md:border-gray-200 md:dark:border-gray-700 md:pl-6">
+                        <h4 class="text-lg font-semibold mb-4">学习支持</h4>
+                        
+                        <div class="space-y-4">
+                            <div class="card p-4 rounded-lg">
+                                <h5 class="font-medium text-sm mb-2">知识点关联</h5>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="#" class="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 px-2 py-1 rounded hover:bg-blue-100 dark:hover:bg-blue-800/30 transition">平面镜成像</a>
+                                    <a href="#" class="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 px-2 py-1 rounded hover:bg-blue-100 dark:hover:bg-blue-800/30 transition">光的反射</a>
+                                    <a href="#" class="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 px-2 py-1 rounded hover:bg-blue-100 dark:hover:bg-blue-800/30 transition">虚像与实像</a>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                <h5 class="font-medium text-sm mb-2">相关学习资源</h5>
+                                <ul class="space-y-3">
+                                    <li>
+                                        <a href="#" class="flex items-center text-sm hover:text-blue-600 dark:hover:text-blue-400">
+                                            <i class="fas fa-video mr-2 text-red-500"></i>
+                                            平面镜成像原理演示视频
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="flex items-center text-sm hover:text-blue-600 dark:hover:text-blue-400">
+                                            <i class="fas fa-flask mr-2 text-green-500"></i>
+                                            平面镜成像实验指导
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="flex items-center text-sm hover:text-blue-600 dark:hover:text-blue-400">
+                                            <i class="fas fa-book mr-2 text-blue-500"></i>
+                                            几何光学基础知识
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                                <h5 class="font-medium text-sm mb-2 text-yellow-800 dark:text-yellow-200">常见错误提醒</h5>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5 mr-2"></i>
+                                        <span>混淆虚像和实像的概念</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5 mr-2"></i>
+                                        <span>忽略平面镜像的左右相反特性</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5 mr-2"></i>
+                                        <span>错误计算物体移动时像的位置变化</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <h5 class="font-medium text-sm mb-3">做题进度</h5>
+                                <div class="flex items-center justify-between text-sm mb-3">
+                                    <div>光学类题目</div>
+                                    <div class="text-blue-600 dark:text-blue-400 font-medium">15/28</div>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full rounded-full bg-blue-600 dark:bg-blue-400" style="width: 54%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <h4 class="font-semibold mb-4">相似题目推荐</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer">
+                            <div class="flex">
+                                <span class="tag difficulty-easy mr-2">基础</span>
+                                <span class="tag category-optics">光学</span>
+                            </div>
+                            <div class="font-medium my-2 text-sm">平面镜成像的位置计算</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">正确率: 88%</div>
+                        </div>
+                        <div class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer">
+                            <div class="flex">
+                                <span class="tag difficulty-medium mr-2">中等</span>
+                                <span class="tag category-optics">光学</span>
+                            </div>
+                            <div class="font-medium my-2 text-sm">两面平行平面镜的多次成像问题</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">正确率: 62%</div>
+                        </div>
+                        <div class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer">
+                            <div class="flex">
+                                <span class="tag difficulty-medium mr-2">中等</span>
+                                <span class="tag category-optics">光学</span>
+                            </div>
+                            <div class="font-medium my-2 text-sm">两面垂直平面镜的成像分析</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">正确率: 57%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-100 dark:bg-gray-800 py-8 border-t border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        作者姓名: 物理学习助手团队
+                    </p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <a href="https://twitter.com/PhysicsLearning" class="hover:underline">Twitter/X: @PhysicsLearning</a>
+                    </p>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    © 2023 物理思维实验室. 保留所有权利.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 主题切换功能
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        // 检查系统主题偏好
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // 初始化知识掌握度图表
+        function initMasteryChart() {
+            const ctx = document.getElementById('mastery-chart').getContext('2d');
+            
+            // 检查当前主题
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#e9ecef' : '#2b2d42';
+            
+            const masteryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['力学', '电学', '光学', '热学'],
+                    datasets: [{
+                        data: [85, 78, 56, 70],
+                        backgroundColor: [
+                            '#4361ee',
+                            '#7209b7',
+                            '#f72585',
+                            '#f97316'
+                        ],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: textColor,
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw}% 掌握度`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return masteryChart;
+        }
+        
+        // 筛选按钮功能
+        function initFilterButtons() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // 找到同组的按钮
+                    const parentDiv = button.parentElement;
+                    const siblingButtons = parentDiv.querySelectorAll('.filter-btn');
+                    
+                    // 移除所有按钮的active状态
+                    siblingButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // 给当前点击的按钮添加active状态
+                    button.classList.add('active');
+                });
+            });
+        }
+        
+        // 初始化标签页功能
+        function initTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // 移除所有标签页的活动状态
+                    document.querySelectorAll('.tab-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // 激活当前点击的标签页
+                    button.classList.add('active');
+                    
+                    // 隐藏所有内容
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // 显示对应内容
+                    const tabName = button.dataset.tab;
+                    document.getElementById(`${tabName}-content`).classList.add('active');
+                });
+            });
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            initMasteryChart();
+            initFilterButtons();
+            initTabs();
+        });
+    </script>
+</body>
+</html>

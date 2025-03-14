@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习报告 - 物理思维实验室</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --text-color: #2b2d42;
+            --bg-color: #f8f9fa;
+            --card-color: #ffffff;
+            --border-color: #e9ecef;
+        }
+        
+        .dark {
+            --primary-color: #4cc9f0;
+            --secondary-color: #7209b7;
+            --accent-color: #f72585;
+            --text-color: #e9ecef;
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --border-color: #333333;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .card {
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+        
+        .strength-bar {
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .heatmap-cell {
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+            margin: 1px;
+            transition: all 0.3s ease;
+        }
+        
+        .heatmap-cell:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        
+        .tab-button {
+            padding: 8px 16px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .tab-button.active {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .progress-circle {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+        
+        .progress-circle svg {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-circle-bg {
+            fill: none;
+            stroke: var(--border-color);
+            stroke-width: 8;
+        }
+        
+        .progress-circle-progress {
+            fill: none;
+            stroke: var(--primary-color);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s ease;
+        }
+        
+        .progress-circle-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .trend-line {
+            stroke: var(--primary-color);
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        .trend-area {
+            fill: var(--primary-color);
+            opacity: 0.1;
+        }
+        
+        .trend-dot {
+            fill: var(--primary-color);
+            r: 4;
+            transition: r 0.3s ease;
+        }
+        
+        .trend-dot:hover {
+            r: 6;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+        
+        .animation-fadeIn {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .recommendation-card {
+            transition: all 0.3s ease;
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <header class="sticky top-0 z-50 bg-opacity-90 backdrop-filter backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <a href="index.html" class="flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <i class="fas fa-atom text-3xl text-blue-600 dark:text-blue-400"></i>
+                    <h1 class="text-xl md:text-2xl font-bold ml-2">物理思维实验室</h1>
+                </a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                    <i class="fas fa-moon text-gray-600 dark:text-gray-300 dark:hidden"></i>
+                    <i class="fas fa-sun text-yellow-400 hidden dark:block"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="hidden md:inline text-sm font-medium">李明同学</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 animation-fadeIn">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold">学习报告与进度分析</h1>
+            <div class="hidden md:flex items-center space-x-2">
+                <button class="border border-gray-300 dark:border-gray-600 px-3 py-1 rounded-md text-sm flex items-center">
+                    <i class="fas fa-share-alt mr-2"></i>
+                    分享报告
+                </button>
+                <button class="border border-gray-300 dark:border-gray-600 px-3 py-1 rounded-md text-sm flex items-center">
+                    <i class="fas fa-download mr-2"></i>
+                    导出PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- 报告概览 -->
+        <section class="mb-8">
+            <div class="card p-6 rounded-xl">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="col-span-1">
+                        <div class="flex flex-col items-center">
+                            <div class="progress-circle mb-4">
+                                <svg width="100" height="100" viewBox="0 0 100 100">
+                                    <circle class="progress-circle-bg" cx="50" cy="50" r="45"></circle>
+                                    <circle class="progress-circle-progress" cx="50" cy="50" r="45" style="stroke-dashoffset: 70.75"></circle>
+                                </svg>
+                                <div class="progress-circle-text">
+                                    <div class="text-3xl font-bold">75%</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">总体掌握</div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-semibold">李明同学</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">初中二年级</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-span-3">
+                        <h2 class="text-xl font-bold mb-4">个人学习概况</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                                <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">学习时长</div>
+                                <div class="flex items-end justify-between">
+                                    <div class="text-2xl font-bold">42.5</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">小时</div>
+                                </div>
+                                <div class="text-xs text-green-600 dark:text-green-400 mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i>
+                                    较上月增长 15%
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
+                                <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">已解决题目</div>
+                                <div class="flex items-end justify-between">
+                                    <div class="text-2xl font-bold">328</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">题</div>
+                                </div>
+                                <div class="text-xs text-green-600 dark:text-green-400 mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i>
+                                    本周完成 45 题
+                                </div>
+                            </div>
+                            <div class="bg-amber-50 dark:bg-amber-900/30 p-4 rounded-lg">
+                                <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">正确率</div>
+                                <div class="flex items-end justify-between">
+                                    <div class="text-2xl font-bold">72.8%</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">总体</div>
+                                </div>
+                                <div class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                    <i class="fas fa-arrow-down mr-1"></i>
+                                    较上月下降 2.3%
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <h3 class="font-semibold mb-3">学习强度分布 (最近30天)</h3>
+                            <div class="flex flex-wrap" id="learning-heatmap">
+                                <!-- 热力图由JS生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学科能力分析 -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-6">物理学科能力分析</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card p-6 rounded-xl">
+                    <h3 class="text-lg font-semibold mb-4">各模块掌握情况</h3>
+                    <canvas id="radar-chart" height="250"></canvas>
+                </div>
+                
+                <div class="card p-6 rounded-xl">
+                    <h3 class="text-lg font-semibold mb-4">能力分布分析</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <div class="text-sm font-medium">概念理解</div>
+                                <div class="text-sm font-medium">92%</div>
+                            </div>
+                            <div class="strength-bar bg-gray-200 dark:bg-gray-700">
+                                <div class="h-full bg-green-500" style="width: 92%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">基础概念掌握良好，理解透彻</div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <div class="text-sm font-medium">公式应用</div>
+                                <div class="text-sm font-medium">85%</div>
+                            </div>
+                            <div class="strength-bar bg-gray-200 dark:bg-gray-700">
+                                <div class="h-full bg-green-500" style="width: 85%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">能灵活应用基本公式解题</div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <div class="text-sm font-medium">实验操作</div>
+                                <div class="text-sm font-medium">78%</div>
+                            </div>
+                            <div class="strength-bar bg-gray-200 dark:bg-gray-700">
+                                <div class="h-full bg-blue-500" style="width: 78%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">实验思路清晰，操作基本准确</div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <div class="text-sm font-medium">计算能力</div>
+                                <div class="text-sm font-medium">68%</div>
+                            </div>
+                            <div class="strength-bar bg-gray-200 dark:bg-gray-700">
+                                <div class="h-full bg-blue-500" style="width: 68%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">复杂计算有待提高，偶有失误</div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <div class="text-sm font-medium">分析推理</div>
+                                <div class="text-sm font-medium">62%</div>
+                            </div>
+                            <div class="strength-bar bg-gray-200 dark:bg-gray-700">
+                                <div class="h-full bg-yellow-500" style="width: 62%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">复杂问题分析能力需要加强</div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <div class="text-sm font-medium">综合应用</div>
+                                <div class="text-sm font-medium">54%</div>
+                            </div>
+                            <div class="strength-bar bg-gray-200 dark:bg-gray-700">
+                                <div class="h-full bg-yellow-500" style="width: 54%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">跨章节综合题型解题能力较弱</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习进度详情 -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-6">学习进度详情</h2>
+            
+            <div class="card p-6 rounded-xl">
+                <!-- 标签页导航 -->
+                <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <div class="flex overflow-x-auto">
+                        <div class="tab-button active" data-tab="all">总体进度</div>
+                        <div class="tab-button" data-tab="mechanics">力学</div>
+                        <div class="tab-button" data-tab="electricity">电学</div>
+                        <div class="tab-button" data-tab="optics">光学</div>
+                        <div class="tab-button" data-tab="thermology">热学</div>
+                    </div>
+                </div>
+                
+                <!-- 总体进度内容 -->
+                <div class="tab-content active" id="all-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">学习进度总览</h3>
+                            <canvas id="progress-chart" height="250"></canvas>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">近期学习趋势</h3>
+                            <svg id="trend-chart" width="100%" height="250"></svg>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <div class="font-medium">力学</div>
+                                <div class="text-sm">
+                                    <span class="font-medium">85%</span>
+                                    <span class="text-gray-500 dark:text-gray-400">完成度</span>
+                                </div>
+                            </div>
+                            <div class="w-full h-4 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                                <div class="h-full bg-blue-600 dark:bg-blue-400 rounded-full" style="width: 85%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <div>已学习：17/20单元</div>
+                                <div>已做题：85/100题</div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <div class="font-medium">电学</div>
+                                <div class="text-sm">
+                                    <span class="font-medium">72%</span>
+                                    <span class="text-gray-500 dark:text-gray-400">完成度</span>
+                                </div>
+                            </div>
+                            <div class="w-full h-4 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                                <div class="h-full bg-purple-600 dark:bg-purple-400 rounded-full" style="width: 72%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <div>已学习：13/18单元</div>
+                                <div>已做题：72/100题</div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <div class="font-medium">光学</div>
+                                <div class="text-sm">
+                                    <span class="font-medium">56%</span>
+                                    <span class="text-gray-500 dark:text-gray-400">完成度</span>
+                                </div>
+                            </div>
+                            <div class="w-full h-4 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                                <div class="h-full bg-pink-600 dark:bg-pink-400 rounded-full" style="width: 56%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <div>已学习：9/16单元</div>
+                                <div>已做题：56/100题</div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <div class="font-medium">热学</div>
+                                <div class="text-sm">
+                                    <span class="font-medium">45%</span>
+                                    <span class="text-gray-500 dark:text-gray-400">完成度</span>
+                                </div>
+                            </div>
+                            <div class="w-full h-4 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                                <div class="h-full bg-orange-600 dark:bg-orange-400 rounded-full" style="width: 45%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <div>已学习：7/15单元</div>
+                                <div>已做题：45/100题</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 力学进度内容 -->
+                <div class="tab-content" id="mechanics-content">
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-4">力学模块学习状态</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-sm">
+                                    <span>牛顿第一定律</span>
+                                    <span class="text-green-600 dark:text-green-400">已掌握</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 95%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span>牛顿第二定律</span>
+                                    <span class="text-green-600 dark:text-green-400">已掌握</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 92%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span>牛顿第三定律</span>
+                                    <span class="text-green-600 dark:text-green-400">已掌握</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 90%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span>重力与自由落体</span>
+                                    <span class="text-green-600 dark:text-green-400">已掌握</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 88%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span>摩擦力</span>
+                                    <span class="text-blue-600 dark:text-blue-400">良好</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-blue-500 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-sm">
+                                    <span>功与功率</span>
+                                    <span class="text-blue-600 dark:text-blue-400">良好</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-blue-500 rounded-full" style="width: 80%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span>动能与势能</span>
+                                    <span class="text-blue-600 dark:text-blue-400">良好</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-blue-500 rounded-full" style="width: 75%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span>机械能守恒</span>
+                                    <span class="text-yellow-600 dark:text-yellow-400">需巩固</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-yellow-500 rounded-full" style="width: 68%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span>简单机械</span>
+                                    <span class="text-yellow-600 dark:text-yellow-400">需巩固</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-yellow-500 rounded-full" style="width: 65%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span>压强与浮力</span>
+                                    <span class="text-red-600 dark:text-red-400">较弱</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                                    <div class="h-full bg-red-500 rounded-full" style="width: 55%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                        <h3 class="text-lg font-semibold mb-4">力学模块错题分析</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="bg-gray-100 dark:bg-gray-800">
+                                        <th class="px-4 py-2 text-left">知识点</th>
+                                        <th class="px-4 py-2 text-left">错题数量</th>
+                                        <th class="px-4 py-2 text-left">错误类型</th>
+                                        <th class="px-4 py-2 text-left">建议</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tr>
+                                        <td class="px-4 py-3">压强计算</td>
+                                        <td class="px-4 py-3">8题</td>
+                                        <td class="px-4 py-3">公式应用错误</td>
+                                        <td class="px-4 py-3">复习压强公式，注意单位换算</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3">浮力计算</td>
+                                        <td class="px-4 py-3">6题</td>
+                                        <td class="px-4 py-3">概念理解不清</td>
+                                        <td class="px-4 py-3">理解阿基米德原理的适用条件</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3">功的计算</td>
+                                        <td class="px-4 py-3">5题</td>
+                                        <td class="px-4 py-3">计算失误</td>
+                                        <td class="px-4 py-3">注意力的方向与位移方向的关系</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3">能量转换</td>
+                                        <td class="px-4 py-3">7题</td>
+                                        <td class="px-4 py-3">分析错误</td>
+                                        <td class="px-4 py-3">掌握能量转换的关键点</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 其他模块内容（简化显示） -->
+                <div class="tab-content" id="electricity-content">
+                    <div class="flex items-center justify-center p-8">
+                        <div class="text-center">
+                            <i class="fas fa-bolt text-5xl text-purple-500 mb-4"></i>
+                            <h3 class="text-lg font-medium mb-2">电学模块详细分析</h3>
+                            <p class="text-gray-500 dark:text-gray-400">点击查看电学模块的详细学习报告与进度分析</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="optics-content">
+                    <div class="flex items-center justify-center p-8">
+                        <div class="text-center">
+                            <i class="fas fa-lightbulb text-5xl text-pink-500 mb-4"></i>
+                            <h3 class="text-lg font-medium mb-2">光学模块详细分析</h3>
+                            <p class="text-gray-500 dark:text-gray-400">点击查看光学模块的详细学习报告与进度分析</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="thermology-content">
+                    <div class="flex items-center justify-center p-8">
+                        <div class="text-center">
+                            <i class="fas fa-fire text-5xl text-orange-500 mb-4"></i>
+                            <h3 class="text-lg font-medium mb-2">热学模块详细分析</h3>
+                            <p class="text-gray-500 dark:text-gray-400">点击查看热学模块的详细学习报告与进度分析</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习建议和推荐 -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-6">个性化学习建议</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card p-6 rounded-xl">
+                    <div class="flex items-start mb-4">
+                        <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">需重点提升</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">重点关注的薄弱知识点</p>
+                        </div>
+                    </div>
+                    
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <div class="text-red-500 dark:text-red-400 mt-0.5 mr-2">
+                                <i class="fas fa-angle-right"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">压强与浮力</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">建议复习阿基米德原理，做5-10道相关题目</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="text-red-500 dark:text-red-400 mt-0.5 mr-2">
+                                <i class="fas fa-angle-right"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">光的折射</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">建议重温折射定律，尤其是临界角和全反射概念</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="text-red-500 dark:text-red-400 mt-0.5 mr-2">
+                                <i class="fas fa-angle-right"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">电功率计算</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">建议练习电功率的不同计算公式及应用场景</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card p-6 rounded-xl">
+                    <div class="flex items-start mb-4">
+                        <div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400 mr-3">
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">待巩固知识</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">需要继续练习的知识点</p>
+                        </div>
+                    </div>
+                    
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <div class="text-yellow-500 dark:text-yellow-400 mt-0.5 mr-2">
+                                <i class="fas fa-angle-right"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">机械能守恒</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">多做一些动能和势能转化的应用题</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="text-yellow-500 dark:text-yellow-400 mt-0.5 mr-2">
+                                <i class="fas fa-angle-right"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">并联电路分析</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">可以尝试更复杂的并联电路计算题</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="text-yellow-500 dark:text-yellow-400 mt-0.5 mr-2">
+                                <i class="fas fa-angle-right"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">简单机械</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">加强对杠杆平衡条件的理解和应用</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card p-6 rounded-xl">
+                    <div class="flex items-start mb-4">
+                        <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">已掌握良好</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">可以尝试更高难度</p>
+                        </div>
+                    </div>
+                    
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <div class="text-green-500 dark:text-green-400 mt-0.5 mr-2">
+                                <i class="fas fa-angle-right"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">牛顿运动定律</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">可以尝试更复杂的力学综合问题</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="text-green-500 dark:text-green-400 mt-0.5 mr-2">
+                                <i class="fas fa-angle-right"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">欧姆定律</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">建议尝试更复杂的混合电路分析</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="text-green-500 dark:text-green-400 mt-0.5 mr-2">
+                                <i class="fas fa-angle-right"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">自由落体</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">可以探索带有初速度的自由落体问题</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 推荐学习资源 -->
+        <section class="mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">推荐学习资源</h2>
+                <button class="text-sm text-blue-600 dark:text-blue-400 hover:underline">查看全部</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="recommendation-card bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden">
+                    <div class="h-40 bg-gradient-to-r from-red-500 to-purple-500 flex items-center justify-center">
+                        <i class="fas fa-water text-5xl text-white"></i>
+                    </div>
+                    <div class="p-4">
+                        <div class="badge bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200 mb-2">
+                            薄弱项强化
+                        </div>
+                        <h3 class="font-bold mb-2">压强与浮力专题解析</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">详解压强原理和阿基米德浮力定律，包含20道典型例题和详细解析。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                <i class="far fa-clock mr-1"></i>
+                                45分钟
+                            </div>
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                                开始学习
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recommendation-card bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden">
+                    <div class="h-40 bg-gradient-to-r from-yellow-500 to-amber-500 flex items-center justify-center">
+                        <i class="fas fa-bolt text-5xl text-white"></i>
+                    </div>
+                    <div class="p-4">
+                        <div class="badge bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200 mb-2">
+                            巩固练习
+                        </div>
+                        <h3 class="font-bold mb-2">并联电路计算专题</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">针对电路分析和计算的专项训练，包含虚拟电路实验和交互式习题。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                <i class="far fa-clock mr-1"></i>
+                                30分钟
+                            </div>
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                                开始学习
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recommendation-card bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden">
+                    <div class="h-40 bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                        <i class="fas fa-lightbulb text-5xl text-white"></i>
+                    </div>
+                    <div class="p-4">
+                        <div class="badge bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200 mb-2">
+                            能力提升
+                        </div>
+                        <h3 class="font-bold mb-2">力学综合解题技巧</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">提供力学综合问题的分析方法和解题策略，帮助应对更复杂的物理情境。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                <i class="far fa-clock mr-1"></i>
+                                60分钟
+                            </div>
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                                开始学习
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-100 dark:bg-gray-800 py-8 border-t border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        作者姓名: 物理学习助手团队
+                    </p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <a href="https://twitter.com/PhysicsLearning" class="hover:underline">Twitter/X: @PhysicsLearning</a>
+                    </p>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    © 2023 物理思维实验室. 保留所有权利.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 主题切换功能
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        // 检查系统主题偏好
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // 生成学习热力图
+        function generateHeatmap() {
+            const heatmapContainer = document.getElementById('learning-heatmap');
+            const days = 30; // 显示30天的数据
+            
+            // 模拟学习数据（每天的学习时长，单位：小时）
+            const learningData = [
+                0.5, 1.2, 2.0, 0.8, 0, 0, 1.5,
+                2.2, 1.0, 1.8, 0.5, 0.7, 0, 0,
+                1.3, 1.5, 2.5, 2.0, 1.8, 0.5, 0,
+                0.3, 1.0, 1.5, 2.0, 2.5, 1.8, 1.0,
+                0.5, 0.8
+            ];
+            
+            // 创建热力图
+            for (let i = 0; i < days; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'heatmap-cell';
+                
+                // 根据学习时长设置颜色深浅
+                const hours = learningData[i];
+                let backgroundColor;
+                
+                if (hours === 0) {
+                    backgroundColor = 'rgba(229, 231, 235, 0.5)'; // 没有学习
+                } else if (hours < 0.5) {
+                    backgroundColor = 'rgba(147, 197, 253, 0.3)'; // 很少学习
+                } else if (hours < 1) {
+                    backgroundColor = 'rgba(147, 197, 253, 0.5)'; // 少量学习
+                } else if (hours < 1.5) {
+                    backgroundColor = 'rgba(147, 197, 253, 0.7)'; // 中等学习
+                } else if (hours < 2) {
+                    backgroundColor = 'rgba(67, 97, 238, 0.7)'; // 较多学习
+                } else {
+                    backgroundColor = 'rgba(67, 97, 238, 1)'; // 大量学习
+                }
+                
+                cell.style.backgroundColor = backgroundColor;
+                
+                // 添加学习数据提示
+                cell.title = `第${i+1}天: ${hours}小时学习`;
+                
+                heatmapContainer.appendChild(cell);
+            }
+        }
+        
+        // 初始化雷达图
+        function initRadarChart() {
+            const ctx = document.getElementById('radar-chart').getContext('2d');
+            
+            // 检查当前主题
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#e9ecef' : '#2b2d42';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            
+            const radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['力学', '电学', '光学', '热学', '声学', '能量转换', '物理实验'],
+                    datasets: [{
+                        label: '知识掌握度',
+                        data: [85, 75, 56, 70, 82, 68, 78],
+                        backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                        borderColor: 'rgba(67, 97, 238, 1)',
+                        pointBackgroundColor: 'rgba(67, 97, 238, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(67, 97, 238, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: gridColor
+                            },
+                            grid: {
+                                color: gridColor
+                            },
+                            pointLabels: {
+                                color: textColor,
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            ticks: {
+                                color: textColor,
+                                backdropColor: 'transparent',
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return radarChart;
+        }
+        
+        // 初始化进度图表
+        function initProgressChart() {
+            const ctx = document.getElementById('progress-chart').getContext('2d');
+            
+            // 检查当前主题
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#e9ecef' : '#2b2d42';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            
+            const progressChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['力学', '电学', '光学', '热学'],
+                    datasets: [{
+                        label: '学习进度',
+                        data: [85, 72, 56, 45],
+                        backgroundColor: [
+                            'rgba(67, 97, 238, 0.8)',
+                            'rgba(114, 9, 183, 0.8)',
+                            'rgba(247, 37, 133, 0.8)',
+                            'rgba(249, 115, 22, 0.8)'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor,
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return progressChart;
+        }
+        
+        // 初始化趋势图表
+        function initTrendChart() {
+            const svg = d3.select('#trend-chart');
+            const width = parseInt(svg.style('width')) || 500;
+            const height = 250;
+            const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+            
+            // 清除现有内容
+            svg.selectAll('*').remove();
+            
+            // 模拟学习时长数据（最近14天）
+            const trendData = [
+                { day: 1, hours: 1.2 },
+                { day: 2, hours: 1.5 },
+                { day: 3, hours: 0.8 },
+                { day: 4, hours: 2.0 },
+                { day: 5, hours: 1.7 },
+                { day: 6, hours: 0.5 },
+                { day: 7, hours: 0.0 },
+                { day: 8, hours: 1.3 },
+                { day: 9, hours: 1.8 },
+                { day: 10, hours: 2.2 },
+                { day: 11, hours: 2.5 },
+                { day: 12, hours: 2.0 },
+                { day: 13, hours: 1.5 },
+                { day: 14, hours: 1.8 }
+            ];
+            
+            // 创建X轴和Y轴比例尺
+            const xScale = d3.scaleLinear()
+                .domain([1, 14])
+                .range([margin.left, width - margin.right]);
+            
+            const yScale = d3.scaleLinear()
+                .domain([0, 3])
+                .range([height - margin.bottom, margin.top]);
+            
+            // 创建轴
+            const xAxis = d3.axisBottom(xScale).ticks(7).tickFormat(d => `第${d}天`);
+            const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat(d => `${d}小时`);
+            
+            // 添加X轴
+            svg.append('g')
+                .attr('transform', `translate(0,${height - margin.bottom})`)
+                .call(xAxis)
+                .attr('color', document.documentElement.classList.contains('dark') ? '#e9ecef' : '#2b2d42');
+            
+            // 添加Y轴
+            svg.append('g')
+                .attr('transform', `translate(${margin.left},0)`)
+                .call(yAxis)
+                .attr('color', document.documentElement.classList.contains('dark') ? '#e9ecef' : '#2b2d42');
+            
+            // 创建线条生成器
+            const line = d3.line()
+                .x(d => xScale(d.day))
+                .y(d => yScale(d.hours))
+                .curve(d3.curveMonotoneX);
+            
+            // 创建面积生成器
+            const area = d3.area()
+                .x(d => xScale(d.day))
+                .y0(height - margin.bottom)
+                .y1(d => yScale(d.hours))
+                .curve(d3.curveMonotoneX);
+            
+            // 添加面积
+            svg.append('path')
+                .datum(trendData)
+                .attr('class', 'trend-area')
+                .attr('d', area);
+            
+            // 添加线条
+            svg.append('path')
+                .datum(trendData)
+                .attr('class', 'trend-line')
+                .attr('d', line);
+            
+            // 添加数据点
+            svg.selectAll('.trend-dot')
+                .data(trendData)
+                .enter()
+                .append('circle')
+                .attr('class', 'trend-dot')
+                .attr('cx', d => xScale(d.day))
+                .attr('cy', d => yScale(d.hours))
+                .append('title')
+                .text(d => `第${d.day}天: ${d.hours}小时学习`);
+        }
+        
+        // 初始化标签页功能
+        function initTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // 移除所有标签页的活动状态
+                    document.querySelectorAll('.tab-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // 激活当前点击的标签页
+                    button.classList.add('active');
+                    
+                    // 隐藏所有内容
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // 显示对应内容
+                    const tabName = button.dataset.tab;
+                    document.getElementById(`${tabName}-content`).classList.add('active');
+                });
+            });
+        }
+        
+        // 页面加载完成后初始化所有图表
+        window.addEventListener('load', function() {
+            generateHeatmap();
+            initRadarChart();
+            initProgressChart();
+            initTrendChart();
+            initTabs();
+            
+            // 调整窗口大小时重绘趋势图
+            window.addEventListener('resize', function() {
+                initTrendChart();
+            });
+        });
+    </script>
+</body>
+</html>

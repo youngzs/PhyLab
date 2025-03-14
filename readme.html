@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>初中物理可视化学习平台 - 架构设计</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --text-color: #2b2d42;
+            --bg-color: #f8f9fa;
+            --card-color: #ffffff;
+            --border-color: #e9ecef;
+        }
+        
+        .dark {
+            --primary-color: #4cc9f0;
+            --secondary-color: #7209b7;
+            --accent-color: #f72585;
+            --text-color: #e9ecef;
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --border-color: #333333;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .card {
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+        
+        .architecture-diagram {
+            width: 100%;
+            height: auto;
+            overflow: auto;
+        }
+        
+        .architecture-node {
+            fill: var(--card-color);
+            stroke: var(--primary-color);
+            stroke-width: 2px;
+            rx: 6;
+            ry: 6;
+        }
+        
+        .architecture-text {
+            fill: var(--text-color);
+            font-size: 12px;
+            text-anchor: middle;
+        }
+        
+        .architecture-link {
+            stroke: var(--border-color);
+            stroke-width: 1.5px;
+            fill: none;
+        }
+        
+        .module-card {
+            border-left: 4px solid;
+        }
+        
+        .animation-fade {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .feature-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <header class="sticky top-0 z-50 bg-opacity-90 backdrop-filter backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-project-diagram text-3xl text-blue-600 dark:text-blue-400"></i>
+                <h1 class="text-xl md:text-2xl font-bold">物理思维实验室 - 架构设计</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                    <i class="fas fa-moon text-gray-600 dark:text-gray-300 dark:hidden"></i>
+                    <i class="fas fa-sun text-yellow-400 hidden dark:block"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 animation-fade">
+        <!-- 系统架构概览 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-sitemap mr-3 text-blue-600 dark:text-blue-400"></i>
+                系统架构概览
+            </h2>
+            <div class="card p-6 rounded-xl">
+                <svg id="architecture-diagram" class="architecture-diagram" width="100%" height="400"></svg>
+                <div class="mt-4 text-sm text-gray-600 dark:text-gray-300">
+                    <p><i class="fas fa-info-circle mr-2"></i>系统采用前后端分离架构，前端负责交互体验，后端提供API服务和数据存储</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 核心模块规划 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-cubes mr-3 text-blue-600 dark:text-blue-400"></i>
+                核心模块规划
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 前端模块 -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-desktop mr-2 text-purple-600 dark:text-purple-400"></i>
+                        前端模块
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #4361ee;">
+                            <h4 class="font-medium">用户界面 (UI)</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>响应式布局 (Mobile, Tablet, Desktop)</li>
+                                <li>深色/浅色主题切换</li>
+                                <li>交互式组件库</li>
+                                <li>微动效和过渡效果</li>
+                            </ul>
+                        </div>
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #3a0ca3;">
+                            <h4 class="font-medium">知识图谱展示</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>交互式思维导图</li>
+                                <li>模块间知识关联</li>
+                                <li>学习路径规划</li>
+                                <li>可缩放和深入展开</li>
+                            </ul>
+                        </div>
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #7209b7;">
+                            <h4 class="font-medium">交互实验模块</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>物理实验模拟器</li>
+                                <li>参数调节与结果观察</li>
+                                <li>实验过程记录</li>
+                                <li>数据可视化展示</li>
+                            </ul>
+                        </div>
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #f72585;">
+                            <h4 class="font-medium">学习进度追踪</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>个人学习仪表盘</li>
+                                <li>知识掌握雷达图</li>
+                                <li>学习时间分析</li>
+                                <li>弱点知识推荐</li>
+                            </ul>
+                        </div>
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #4cc9f0;">
+                            <h4 class="font-medium">题库与测验系统</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>多种题型支持</li>
+                                <li>实时反馈机制</li>
+                                <li>错题收集与分析</li>
+                                <li>自适应难度调整</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 后端模块 -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-server mr-2 text-green-600 dark:text-green-400"></i>
+                        后端模块
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #0aaa5c;">
+                            <h4 class="font-medium">用户管理系统</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>用户注册与登录</li>
+                                <li>权限控制</li>
+                                <li>个人资料管理</li>
+                                <li>第三方账号整合</li>
+                            </ul>
+                        </div>
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #0d8a72;">
+                            <h4 class="font-medium">学习数据存储</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>用户学习记录</li>
+                                <li>进度同步机制</li>
+                                <li>数据备份恢复</li>
+                                <li>多设备状态同步</li>
+                            </ul>
+                        </div>
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #147d64;">
+                            <h4 class="font-medium">学习分析引擎</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>学习行为分析</li>
+                                <li>知识点掌握评估</li>
+                                <li>个性化推荐算法</li>
+                                <li>学习效率优化</li>
+                            </ul>
+                        </div>
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #1a7054;">
+                            <h4 class="font-medium">内容管理系统</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>知识点管理</li>
+                                <li>教学资源库</li>
+                                <li>题库管理与更新</li>
+                                <li>内容版本控制</li>
+                            </ul>
+                        </div>
+                        <div class="card p-4 rounded-lg module-card" style="border-left-color: #1e6148;">
+                            <h4 class="font-medium">API服务层</h4>
+                            <ul class="mt-2 text-sm space-y-1 pl-5 list-disc">
+                                <li>RESTful API设计</li>
+                                <li>接口认证与安全</li>
+                                <li>数据缓存策略</li>
+                                <li>服务监控与日志</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 文件结构设计 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-folder-tree mr-3 text-blue-600 dark:text-blue-400"></i>
+                文件结构设计
+            </h2>
+            <div class="card p-6 rounded-xl overflow-x-auto">
+                <pre class="text-sm font-mono" id="file-structure">
+物理思维实验室/
+├── 前端/
+│   ├── public/
+│   │   ├── assets/
+│   │   │   ├── images/       # 静态图片资源
+│   │   │   ├── animations/   # 动画资源
+│   │   │   └── icons/        # 图标资源
+│   │   └── index.html        # 入口HTML文件
+│   ├── src/
+│   │   ├── components/       # 可复用组件
+│   │   │   ├── common/       # 通用组件 (导航、按钮等)
+│   │   │   ├── mind-map/     # 思维导图相关组件
+│   │   │   ├── experiments/  # 实验模拟相关组件
+│   │   │   ├── quiz/         # 题库和测验相关组件
+│   │   │   └── dashboard/    # 学习仪表盘相关组件
+│   │   ├── pages/            # 页面级别组件
+│   │   │   ├── home/         # 首页
+│   │   │   ├── learn/        # 学习中心
+│   │   │   │   ├── mechanics/      # 力学章节
+│   │   │   │   ├── electricity/    # 电学章节
+│   │   │   │   ├── optics/         # 光学章节
+│   │   │   │   └── thermology/     # 热学章节
+│   │   │   ├── experiments/  # 实验室
+│   │   │   ├── quiz/         # 测验中心
+│   │   │   ├── profile/      # 个人中心
+│   │   │   └── admin/        # 管理中心(教师用)
+│   │   ├── utils/            # 工具函数
+│   │   ├── store/            # 状态管理
+│   │   ├── services/         # API服务封装
+│   │   ├── styles/           # 公共样式
+│   │   ├── router/           # 路由配置
+│   │   └── App.js            # 应用根组件
+│   └── package.json          # 依赖管理
+├── 后端/
+│   ├── api/                  # API接口定义
+│   │   ├── user/             # 用户相关API
+│   │   ├── learning/         # 学习进度相关API
+│   │   ├── content/          # 内容管理相关API
+│   │   └── quiz/             # 题库相关API
+│   ├── models/               # 数据模型
+│   ├── services/             # 业务逻辑
+│   ├── utils/                # 工具函数
+│   ├── config/               # 配置文件
+│   ├── middlewares/          # 中间件
+│   └── database/             # 数据库相关
+│       ├── migrations/       # 数据库结构变更
+│       └── seeds/            # 初始数据填充
+└── 文档/
+    ├── api-docs/             # API文档
+    ├── user-manual/          # 用户手册
+    └── development/          # 开发文档
+                </pre>
+            </div>
+        </section>
+
+        <!-- 数据库设计 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-database mr-3 text-blue-600 dark:text-blue-400"></i>
+                数据库设计
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-100 dark:bg-gray-800">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">表名</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">主要字段</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">功能描述</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">users</td>
+                            <td class="px-6 py-4">
+                                <code>id, username, email, password_hash, role, created_at, last_login</code>
+                            </td>
+                            <td class="px-6 py-4">存储用户账号信息</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">user_profiles</td>
+                            <td class="px-6 py-4">
+                                <code>user_id, nickname, avatar, grade, school, preferences</code>
+                            </td>
+                            <td class="px-6 py-4">存储用户个人资料</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">knowledge_points</td>
+                            <td class="px-6 py-4">
+                                <code>id, title, description, content, category, parent_id, difficulty</code>
+                            </td>
+                            <td class="px-6 py-4">知识点层级结构</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">learning_progress</td>
+                            <td class="px-6 py-4">
+                                <code>user_id, knowledge_point_id, status, progress, last_studied, mastery_level</code>
+                            </td>
+                            <td class="px-6 py-4">用户学习进度跟踪</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">quiz_questions</td>
+                            <td class="px-6 py-4">
+                                <code>id, knowledge_point_id, type, content, options, answer, explanation, difficulty</code>
+                            </td>
+                            <td class="px-6 py-4">题库管理</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">quiz_attempts</td>
+                            <td class="px-6 py-4">
+                                <code>user_id, question_id, answer, is_correct, time_spent, attempted_at</code>
+                            </td>
+                            <td class="px-6 py-4">用户答题记录</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">experiment_records</td>
+                            <td class="px-6 py-4">
+                                <code>user_id, experiment_id, parameters, results, completed, created_at</code>
+                            </td>
+                            <td class="px-6 py-4">实验操作记录</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">study_sessions</td>
+                            <td class="px-6 py-4">
+                                <code>user_id, start_time, end_time, duration, activity_log</code>
+                            </td>
+                            <td class="px-6 py-4">学习会话记录</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 用户交互设计 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-hand-pointer mr-3 text-blue-600 dark:text-blue-400"></i>
+                用户交互设计
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card p-5 rounded-xl feature-card">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-4">
+                            <i class="fas fa-magic text-blue-600 dark:text-blue-400 feature-icon"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">微交互反馈</h3>
+                    </div>
+                    <ul class="text-sm space-y-2 pl-5 list-disc">
+                        <li>按钮点击动效与声效反馈</li>
+                        <li>页面切换平滑过渡动画</li>
+                        <li>数据变化渐变过渡效果</li>
+                        <li>实验参数调整实时响应</li>
+                        <li>操作提示气泡引导</li>
+                    </ul>
+                </div>
+                <div class="card p-5 rounded-xl feature-card">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mr-4">
+                            <i class="fas fa-gamepad text-purple-600 dark:text-purple-400 feature-icon"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">游戏化激励</h3>
+                    </div>
+                    <ul class="text-sm space-y-2 pl-5 list-disc">
+                        <li>成就徽章与积分系统</li>
+                        <li>阶段性解锁特权内容</li>
+                        <li>学习连续打卡奖励</li>
+                        <li>好友间学习排行榜</li>
+                        <li>知识关卡闯关系统</li>
+                    </ul>
+                </div>
+                <div class="card p-5 rounded-xl feature-card">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-4">
+                            <i class="fas fa-brain text-green-600 dark:text-green-400 feature-icon"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">个性化学习</h3>
+                    </div>
+                    <ul class="text-sm space-y-2 pl-5 list-disc">
+                        <li>自适应难度调整</li>
+                        <li>基于薄弱项的学习推荐</li>
+                        <li>个人学习偏好设置</li>
+                        <li>多样化学习路径选择</li>
+                        <li>学习进度智能提醒</li>
+                    </ul>
+                </div>
+                <div class="card p-5 rounded-xl feature-card">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mr-4">
+                            <i class="fas fa-users text-amber-600 dark:text-amber-400 feature-icon"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">社交学习</h3>
+                    </div>
+                    <ul class="text-sm space-y-2 pl-5 list-disc">
+                        <li>学习笔记分享与讨论</li>
+                        <li>实验结果对比与评论</li>
+                        <li>小组协作解题功能</li>
+                        <li>教师指导互动平台</li>
+                        <li>同伴互助答疑系统</li>
+                    </ul>
+                </div>
+                <div class="card p-5 rounded-xl feature-card">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mr-4">
+                            <i class="fas fa-chart-line text-red-600 dark:text-red-400 feature-icon"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">学习分析仪表盘</h3>
+                    </div>
+                    <ul class="text-sm space-y-2 pl-5 list-disc">
+                        <li>知识掌握度可视化图表</li>
+                        <li>学习时间分布热力图</li>
+                        <li>错题分析与薄弱项识别</li>
+                        <li>学习效率趋势分析</li>
+                        <li>与同龄人对比参考</li>
+                    </ul>
+                </div>
+                <div class="card p-5 rounded-xl feature-card">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mr-4">
+                            <i class="fas fa-sync-alt text-indigo-600 dark:text-indigo-400 feature-icon"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">多设备同步</h3>
+                    </div>
+                    <ul class="text-sm space-y-2 pl-5 list-disc">
+                        <li>云端进度自动同步</li>
+                        <li>离线学习内容缓存</li>
+                        <li>学习中断点精确保存</li>
+                        <li>设备间无缝切换体验</li>
+                        <li>历史学习记录恢复</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 实现路线图 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-road mr-3 text-blue-600 dark:text-blue-400"></i>
+                实现路线图
+            </h2>
+            <div class="card p-6 rounded-xl">
+                <div class="relative overflow-hidden">
+                    <div class="border-l-2 border-blue-500 dark:border-blue-400 ml-4 pl-8 pb-2">
+                        <div class="absolute w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 -left-2 top-0"></div>
+                        <h3 class="text-lg font-semibold mb-2">Phase 1: 核心框架搭建 (1-2周)</h3>
+                        <ul class="text-sm space-y-1 pl-5 list-disc">
+                            <li>前端脚手架搭建</li>
+                            <li>后端API基础架构</li>
+                            <li>数据库基础表设计</li>
+                            <li>用户认证系统实现</li>
+                            <li>基础UI组件库开发</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-2 border-blue-500 dark:border-blue-400 ml-4 pl-8 pb-2 mt-6">
+                        <div class="absolute w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 -left-2"></div>
+                        <h3 class="text-lg font-semibold mb-2">Phase 2: 知识模块开发 (3-4周)</h3>
+                        <ul class="text-sm space-y-1 pl-5 list-disc">
+                            <li>思维导图组件开发</li>
+                            <li>力学基础知识模块</li>
+                            <li>电学基础知识模块</li>
+                            <li>基础题库系统实现</li>
+                            <li>学习进度跟踪功能</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-2 border-blue-500 dark:border-blue-400 ml-4 pl-8 pb-2 mt-6">
+                        <div class="absolute w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 -left-2"></div>
+                        <h3 class="text-lg font-semibold mb-2">Phase 3: 实验模拟系统 (3-4周)</h3>
+                        <ul class="text-sm space-y-1 pl-5 list-disc">
+                            <li>物理引擎集成</li>
+                            <li>电路实验模拟器</li>
+                            <li>光学实验模拟器</li>
+                            <li>力学实验模拟器</li>
+                            <li>实验结果数据分析</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-2 border-blue-500 dark:border-blue-400 ml-4 pl-8 pb-2 mt-6">
+                        <div class="absolute w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 -left-2"></div>
+                        <h3 class="text-lg font-semibold mb-2">Phase 4: 学习分析系统 (2-3周)</h3>
+                        <ul class="text-sm space-y-1 pl-5 list-disc">
+                            <li>学习数据收集机制</li>
+                            <li>数据可视化仪表盘</li>
+                            <li>薄弱知识点分析</li>
+                            <li>个性化学习路径推荐</li>
+                            <li>学习报告生成功能</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-2 border-blue-500 dark:border-blue-400 ml-4 pl-8 pb-2 mt-6">
+                        <div class="absolute w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 -left-2"></div>
+                        <h3 class="text-lg font-semibold mb-2">Phase 5: 游戏化与社交系统 (2-3周)</h3>
+                        <ul class="text-sm space-y-1 pl-5 list-disc">
+                            <li>成就和徽章系统</li>
+                            <li>学习排行榜功能</li>
+                            <li>社交分享功能</li>
+                            <li>互动问答社区</li>
+                            <li>学习挑战任务系统</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-2 border-blue-500 dark:border-blue-400 ml-4 pl-8 pb-2 mt-6">
+                        <div class="absolute w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 -left-2"></div>
+                        <h3 class="text-lg font-semibold mb-2">Phase 6: 完善与优化 (2-3周)</h3>
+                        <ul class="text-sm space-y-1 pl-5 list-disc">
+                            <li>完整学科内容填充</li>
+                            <li>性能优化与测试</li>
+                            <li>多设备适配优化</li>
+                            <li>用户反馈收集与迭代</li>
+                            <li>最终版本发布</li>
+                        </ul>
+                    </div>
+                    <div class="ml-4 pl-8 mt-6">
+                        <div class="absolute w-4 h-4 rounded-full bg-green-500 dark:bg-green-400 -left-2"></div>
+                        <h3 class="text-lg font-semibold text-green-600 dark:text-green-400 flex items-center">
+                            <i class="fas fa-flag-checkered mr-2"></i>
+                            预计总开发周期: 3-4个月
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-100 dark:bg-gray-800 py-8 border-t border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        作者姓名: 物理学习助手团队
+                    </p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <a href="https://twitter.com/PhysicsLearning" class="hover:underline">Twitter/X: @PhysicsLearning</a>
+                    </p>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    © 2025 物理思维实验室. 保留所有权利.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 主题切换功能
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        // 检查系统主题偏好
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // 绘制架构图
+        function drawArchitectureDiagram() {
+            const svg = d3.select("#architecture-diagram");
+            const width = parseInt(svg.style('width'));
+            const height = 400;
+            
+            // 清除现有内容
+            svg.selectAll("*").remove();
+            
+            // 定义架构节点
+            const nodes = [
+                { id: "frontend", label: "前端界面层", x: width * 0.5, y: 50, width: 120, height: 40 },
+                { id: "ui", label: "UI组件", x: width * 0.25, y: 130, width: 100, height: 35 },
+                { id: "mindmap", label: "思维导图", x: width * 0.45, y: 130, width: 100, height: 35 },
+                { id: "experiments", label: "实验模拟", x: width * 0.65, y: 130, width: 100, height: 35 },
+                { id: "quiz", label: "题库系统", x: width * 0.85, y: 130, width: 100, height: 35 },
+                { id: "api", label: "API服务层", x: width * 0.5, y: 200, width: 120, height: 40 },
+                { id: "backend", label: "后端业务层", x: width * 0.5, y: 270, width: 120, height: 40 },
+                { id: "user", label: "用户管理", x: width * 0.25, y: 340, width: 100, height: 35 },
+                { id: "learning", label: "学习数据", x: width * 0.45, y: 340, width: 100, height: 35 },
+                { id: "content", label: "内容管理", x: width * 0.65, y: 340, width: 100, height: 35 },
+                { id: "analysis", label: "数据分析", x: width * 0.85, y: 340, width: 100, height: 35 }
+            ];
+            
+            // 定义连接关系
+            const links = [
+                { source: "frontend", target: "ui" },
+                { source: "frontend", target: "mindmap" },
+                { source: "frontend", target: "experiments" },
+                { source: "frontend", target: "quiz" },
+                { source: "frontend", target: "api" },
+                { source: "api", target: "backend" },
+                { source: "backend", target: "user" },
+                { source: "backend", target: "learning" },
+                { source: "backend", target: "content" },
+                { source: "backend", target: "analysis" }
+            ];
+            
+            // 绘制连接线
+            svg.selectAll(".architecture-link")
+                .data(links)
+                .enter()
+                .append("path")
+                .attr("class", "architecture-link")
+                .attr("d", d => {
+                    const source = nodes.find(n => n.id === d.source);
+                    const target = nodes.find(n => n.id === d.target);
+                    return `M${source.x},${source.y + source.height/2} 
+                            C${source.x},${(source.y + target.y)/2} 
+                            ${target.x},${(source.y + target.y)/2} 
+                            ${target.x},${target.y - target.height/2}`;
+                });
+            
+            // 绘制节点
+            const nodeGroups = svg.selectAll(".architecture-node-group")
+                .data(nodes)
+                .enter()
+                .append("g")
+                .attr("class", "architecture-node-group");
+            
+            // 添加节点背景
+            nodeGroups.append("rect")
+                .attr("class", "architecture-node")
+                .attr("x", d => d.x - d.width/2)
+                .attr("y", d => d.y - d.height/2)
+                .attr("width", d => d.width)
+                .attr("height", d => d.height);
+            
+            // 添加节点文本
+            nodeGroups.append("text")
+                .attr("class", "architecture-text")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y + 5)
+                .text(d => d.label);
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            if (typeof d3 !== 'undefined') {
+                drawArchitectureDiagram();
+                
+                // 调整窗口大小时重绘图表
+                window.addEventListener('resize', function() {
+                    drawArchitectureDiagram();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
